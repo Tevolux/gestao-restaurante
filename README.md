@@ -51,3 +51,5 @@ massa-certa/
 ---
 
 Feito com dedicacao para o Pastasciutta.
+
+<!-- Teste de deploy automatico via GitHub + Vercel -->
