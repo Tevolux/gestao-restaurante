@@ -27,8 +27,8 @@
     <div class="login-field"><label for="lg-email">Email</label><input id="lg-email" type="email" autocomplete="username" placeholder="voce@email.com"></div>
     <div class="login-field"><label for="lg-senha">Senha</label><input id="lg-senha" type="password" autocomplete="current-password" placeholder="••••••••"></div>
     <div id="lg-erro" class="login-erro"></div>
-    <button class="btn" style="width:100%" onclick="fazerLogin()">Entrar</button>
-    <button class="btn ghost" style="width:100%;margin-top:8px" onclick="criarConta()">Criar conta</button>
+    <button id="lg-btn-entrar" class="btn" style="width:100%" onclick="fazerLogin()">Entrar</button>
+    <button id="lg-btn-criar" class="btn ghost" style="width:100%;margin-top:8px" onclick="criarConta()">Criar conta</button>
   </div>
 </div>
 
@@ -53,9 +53,18 @@
       <button class="nav-item" data-pg="receitas" onclick="navegar('receitas')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l3 3v15H5z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>
         Receitas</button>
+      <button class="nav-item" data-pg="ingredientes" onclick="navegar('ingredientes')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>
+        Ingredientes</button>
       <button class="nav-item" data-pg="vendas" onclick="navegar('vendas')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
         Vendas</button>
+      <button class="nav-item" data-pg="colaboradores" onclick="navegar('colaboradores')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13A4 4 0 0 1 16 11"/></svg>
+        Colaboradores</button>
+      <button class="nav-item" data-pg="pagamentos" onclick="navegar('pagamentos')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>
+        Pagamentos</button>
       <div class="nav-label">Módulos</div>
       <button class="nav-item" data-pg="operacao" onclick="navegar('operacao')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14a6 6 0 0 0 6-6H6a6 6 0 0 0 6 6Z"/><path d="M12 14v4M8 21h8M18 8h2a2 2 0 0 1 0 4h-1"/></svg>
@@ -144,43 +153,37 @@
       <!-- ---------- RECEITAS ---------- -->
       <section id="pg-receitas" class="pg" hidden>
         <div class="card">
-          <h2>Nova receita</h2>
-          <p class="sub">Digite o ingrediente — o custo aparece sozinho. Depois escolha a escala: de 1 prato até a produção do dia.</p>
-          <div class="fields">
-            <div class="field"><label for="rec-nome">Nome do prato</label><div class="inp"><input id="rec-nome" placeholder="ex.: Ragu da casa"></div></div>
-            <div class="field" style="max-width:150px"><label for="rec-rende">Rende (pratos)</label><div class="inp"><input id="rec-rende" type="number" min="1" step="1" value="1"></div></div>
-          </div>
-          <table>
-            <thead><tr><th>Ingrediente</th><th style="width:120px">Qtd (g)</th><th style="width:110px" class="num">Preço/kg</th><th style="width:110px" class="num">Custo</th><th style="width:44px"></th></tr></thead>
-            <tbody id="rec-linhas"></tbody>
-          </table>
-          <div style="margin-top:14px"><button class="btn ghost" onclick="addLinha()">+ adicionar ingrediente</button></div>
-          <div class="callout">
-            <div><div class="lbl">Custo da receita</div><div class="v" id="rec-custo-total">€ 0,00</div></div>
-            <div><div class="lbl">Custo por prato</div><div class="v" id="rec-custo-prato">€ 0,00</div></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>Escala de produção</h2>
-          <p class="sub">Veja os ingredientes e o custo para a quantidade que quiser produzir.</p>
-          <div class="fields">
-            <div class="field" style="max-width:190px"><label for="rec-escala">Calcular para (pratos)</label><div class="inp"><input id="rec-escala" type="number" min="1" step="1" value="1"></div></div>
-            <div style="padding-bottom:2px">
-              <div class="seg" id="seg-escala">
-                <button type="button" class="on" onclick="setEscala(1, this)">1 prato</button>
-                <button type="button" onclick="setEscala(2000, this)">Produção (2.000)</button>
-              </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+            <div>
+              <h2 style="margin:0">Receitas <span class="tag" id="rec-contador">0</span></h2>
+              <p class="sub" style="margin:4px 0 0">Suas receitas salvas no banco. Clique para criar uma nova.</p>
             </div>
+            <button class="btn" onclick="abrirCriarReceita()">+ Criar receita</button>
           </div>
-          <div id="rec-escala-saida"></div>
+          <div id="rec-salvas" style="margin-top:18px"></div>
+        </div>
+      </section>
+
+      <!-- ---------- INGREDIENTES ---------- -->
+      <section id="pg-ingredientes" class="pg" hidden>
+        <div class="card">
+          <h2>Adicionar ingrediente</h2>
+          <p class="sub">Cadastre um insumo e o preço por kg — ele já fica disponível nas receitas.</p>
+          <div class="fields">
+            <div class="field"><label for="ing-novo-nome">Nome</label><div class="inp"><input id="ing-novo-nome" placeholder="ex.: manjericão fresco"></div></div>
+            <div class="field" style="max-width:180px"><label for="ing-novo-preco">Preço (€/kg)</label><div class="inp"><span class="pre">€</span><input id="ing-novo-preco" type="number" min="0" step="0.1" placeholder="0,00"></div></div>
+            <div style="padding-bottom:2px"><button class="btn" onclick="adicionarIngrediente()">Adicionar</button></div>
+          </div>
         </div>
 
         <div class="card">
-          <h2>Receitas salvas <span class="tag" id="rec-contador">0</span></h2>
-          <p class="sub">Suas receitas ficam aqui. Na fase Supabase, serão salvas na nuvem.</p>
-          <div style="margin-bottom:14px"><button class="btn" onclick="salvarReceita()">Salvar esta receita</button></div>
-          <div id="rec-salvas"></div>
+          <h2>Ingredientes cadastrados <span class="tag" id="ing-contador">0</span></h2>
+          <p class="sub">Edite o preço direto na lista ou remova. Tudo salva no banco.</p>
+          <div class="inp" style="max-width:340px;margin-bottom:16px"><input id="ing-busca" placeholder="Buscar ingrediente…"></div>
+          <table>
+            <thead><tr><th>Ingrediente</th><th class="num" style="width:150px">Preço/kg</th><th style="width:44px"></th></tr></thead>
+            <tbody id="ing-lista"></tbody>
+          </table>
         </div>
       </section>
 
@@ -229,6 +232,38 @@
         </div>
       </section>
 
+      <!-- ---------- COLABORADORES ---------- -->
+      <section id="pg-colaboradores" class="pg" hidden>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+            <div>
+              <h2 style="margin:0">Colaboradores <span class="tag" id="colab-contador">0</span></h2>
+              <p class="sub" style="margin:4px 0 0">A equipe do restaurante. Clique para cadastrar um novo.</p>
+            </div>
+            <button class="btn" onclick="abrirCadastroColab()">+ Adicionar colaborador</button>
+          </div>
+          <div id="colab-lista" style="margin-top:18px"></div>
+        </div>
+      </section>
+
+      <!-- ---------- PAGAMENTOS ---------- -->
+      <section id="pg-pagamentos" class="pg" hidden>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+            <div>
+              <h2 style="margin:0">Pagamentos da equipe</h2>
+              <p class="sub" style="margin:4px 0 0">Digite o líquido ou o bruto — o outro é calculado pela % de desconto. Horas acima de 6h viram extra a € 15/h.</p>
+            </div>
+            <div style="text-align:right">
+              <div class="hint">Total a pagar (todos)</div>
+              <div class="mono" id="pay-total-geral" style="font-size:24px;font-weight:600;color:var(--accent)">€ 0</div>
+            </div>
+          </div>
+          <div id="pay-lista" style="margin-top:18px"></div>
+          <p class="hint" style="margin-top:16px">A % de desconto é definida por você (com base no seu contador). Isto não é software oficial de folha nem consultoria fiscal.</p>
+        </div>
+      </section>
+
       <!-- ---------- EM BREVE ---------- -->
       <section id="pg-operacao" class="pg" hidden><div class="card"><div class="empty">
         <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14a6 6 0 0 0 6-6H6a6 6 0 0 0 6 6Z"/><path d="M12 14v4M8 21h8"/></svg></div>
@@ -262,6 +297,97 @@
       <kbd>esc</kbd>
     </div>
     <div class="cmdk-list" id="cmdk-list"></div>
+  </div>
+</div>
+
+<div class="modal" id="modal-receita">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>Criar receita</h2>
+      <button class="modal-x" onclick="fecharCriarReceita()" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="rf-bloco">
+        <label class="rf-label" for="rec-nome">1 · Nome da receita</label>
+        <div class="inp"><input id="rec-nome" placeholder="ex.: Ragu da casa"></div>
+      </div>
+
+      <div class="rf-bloco">
+        <label class="rf-label">2 · Foto do prato</label>
+        <label class="rf-foto" id="rec-foto-preview">
+          <input type="file" id="rec-foto-input" accept="image/*" onchange="onFotoSelecionada(this)" hidden>
+          <span class="rf-foto-hint">📷 Clique para escolher uma foto</span>
+        </label>
+      </div>
+
+      <div class="rf-bloco">
+        <label class="rf-label">3 · Ingredientes</label>
+        <div class="fields" style="margin-bottom:12px">
+          <div class="field" style="max-width:170px"><label for="rec-rende">Rende (pratos)</label><div class="inp"><input id="rec-rende" type="number" min="1" step="1" value="1"></div></div>
+        </div>
+        <table>
+          <thead><tr><th>Ingrediente</th><th style="width:100px">Qtd (g)</th><th style="width:96px" class="num">Preço/kg</th><th style="width:96px" class="num">Custo</th><th style="width:40px"></th></tr></thead>
+          <tbody id="rec-linhas"></tbody>
+        </table>
+        <div style="margin-top:12px"><button class="btn ghost" type="button" onclick="addLinha()">+ adicionar ingrediente</button></div>
+        <div class="callout" style="margin-top:14px">
+          <div><div class="lbl">Custo da receita</div><div class="v" id="rec-custo-total">€ 0,00</div></div>
+          <div><div class="lbl">Custo por prato</div><div class="v" id="rec-custo-prato">€ 0,00</div></div>
+        </div>
+      </div>
+
+      <div class="rf-bloco" style="margin-bottom:0">
+        <label class="rf-label" for="rec-preparo">4 · Modo de preparo</label>
+        <textarea id="rec-preparo" class="rf-textarea" placeholder="Descreva o passo a passo do preparo…"></textarea>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="fecharCriarReceita()">Cancelar</button>
+      <button class="btn" onclick="salvarReceita()">Salvar receita</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="rec-foto-troca" accept="image/*" hidden>
+<div class="modal" id="modal-colab">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>Adicionar colaborador</h2>
+      <button class="modal-x" onclick="fecharCadastroColab()" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="rf-bloco">
+        <label class="rf-label">Foto do colaborador</label>
+        <label class="rf-foto" id="colab-foto-preview" style="height:150px">
+          <input type="file" accept="image/*" onchange="onColabFoto(this)" hidden>
+          <span class="rf-foto-hint">📷 Escolher foto</span>
+        </label>
+      </div>
+      <div class="fields">
+        <div class="field"><label for="colab-nome">Nome</label><div class="inp"><input id="colab-nome" placeholder="Nome completo"></div></div>
+        <div class="field"><label for="colab-cargo">Cargo</label><div class="inp"><input id="colab-cargo" placeholder="ex.: Cozinheiro"></div></div>
+      </div>
+      <div class="fields">
+        <div class="field"><label for="colab-doc">CPF / Documento</label><div class="inp"><input id="colab-doc" placeholder="documento"></div></div>
+        <div class="field"><label for="colab-tel">Telefone</label><div class="inp"><input id="colab-tel" placeholder="+39 ..."></div></div>
+      </div>
+      <div class="fields">
+        <div class="field"><label for="colab-email">Email</label><div class="inp"><input id="colab-email" type="email" placeholder="email@exemplo.com"></div></div>
+        <div class="field"><label for="colab-endereco">Endereço</label><div class="inp"><input id="colab-endereco" placeholder="Rua, número, cidade"></div></div>
+      </div>
+      <div class="rf-bloco" style="margin:6px 0 0">
+        <label class="rf-label">Documentos e comprovantes (fotos)</label>
+        <input type="file" id="colab-docs-input" accept="image/*" multiple onchange="onColabDocs(this)" hidden>
+        <button class="btn ghost" type="button" onclick="document.getElementById('colab-docs-input').click()">+ anexar fotos</button>
+        <div class="docs-grid" id="colab-docs-preview"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="fecharCadastroColab()">Cancelar</button>
+      <button class="btn" onclick="salvarColaborador()">Salvar colaborador</button>
+    </div>
   </div>
 </div>
 
