@@ -1,55 +1,25 @@
-# 🍝 Massa Certa — Sistema de Gestão
+# Massa Certa — Sistema de Gestao
 
-Sistema de gestão e análise para a operação do **Pastasciutta** (Roma).
-Reúne, num único painel, a operação do dia a dia e a inteligência de vendas.
+Sistema de gestao e analise para a operacao do Pastasciutta (Roma).
+Dashboard, receitas com custo automatico e analises de vendas com
+filtros de regiao, nacionalidade, prato e estacao (sazonalidade de Roma).
 
-> **Nota:** os dados exibidos são **de exemplo (mockados)** para demonstração.
-> Na versão conectada ao banco (Supabase), o sistema usa os dados reais.
+> Dados de exemplo (mockados) para demonstracao. Valores em euro (EUR).
 
-É um app web de página única (`index.html`) — abre no navegador e roda em
-qualquer lugar, ideal para publicar na **Vercel**.
-
----
-
-## ▶️ Como usar
-
+## Rodar
 Abra o `index.html` no navegador (ou acesse o link publicado na Vercel).
 
----
+## Tecnologia
+HTML, CSS e JavaScript puro + Chart.js. Sem framework, sem build.
 
-## ⚙️ Funcionalidades
-
-- **Dashboard** — visão geral: faturamento, pratos vendidos, prato campeão,
-  gráfico dos últimos dias e ranking de pratos.
-- **Receitas** — monte pratos digitando o ingrediente (o custo aparece
-  sozinho) e veja o custo de 1 prato até a produção do dia.
-- **Análises de vendas** — pizza de participação por prato, origem dos
-  clientes e movimento por mês, com filtros combináveis de **região**,
-  **nacionalidade**, **prato** e **estação**. Inclui o **prato campeão por
-  mês**, que muda com a **sazonalidade de Roma** (turismo europeu).
-- Valores em **euro (€)**, com preços de referência de fornecedor.
-
-Módulos em construção: Operação, Projeção e Gestão (estilo Jira).
-
----
-
-## 🧱 Tecnologia
-
-- HTML, CSS e JavaScript (sem framework) — leve e fácil de publicar.
-- Chart.js para os gráficos.
-- Tipografia: Plus Jakarta Sans + IBM Plex Mono.
-
-## 📁 Estrutura
-
+## Estrutura
 ```
 massa-certa/
-├── index.html    -> o sistema inteiro
-├── README.md     -> este arquivo
-└── .gitignore    -> o que o Git deve ignorar
+├── index.html        -> a pagina (estrutura)
+├── css/style.css     -> todo o visual
+├── js/app.js         -> toda a logica
+├── assets/           -> icones e imagens (favicon)
+├── README.md
+├── COMANDOS.md       -> caminhos e comandos uteis
+└── .gitignore
 ```
-
----
-
-Feito com dedicacao para o Pastasciutta.
-
-<!-- Teste de deploy automatico via GitHub + Vercel -->

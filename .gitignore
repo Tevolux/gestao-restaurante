@@ -1,2 +1,16 @@
-.vercel
+# Lixo do sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Configurações de editores
+.vscode/
+*.swp
+
+# Dependências / build (para quando o projeto crescer)
+node_modules/
+dist/
+
+# Vercel (NÃO versionar: contém token secreto e config local)
+.vercel/
 .env*
