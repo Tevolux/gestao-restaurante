@@ -4,10 +4,13 @@ Sistema de gestao e analise para a operacao do Pastasciutta (Roma).
 Dashboard, receitas com custo automatico e analises de vendas com
 filtros de regiao, nacionalidade, prato e estacao (sazonalidade de Roma).
 
+🔗 **App em producao:** https://massa-certa.vercel.app
+
 > Dados de exemplo (mockados) para demonstracao. Valores em euro (EUR).
 
 ## Rodar
-Abra o `index.html` no navegador (ou acesse o link publicado na Vercel).
+Abra o `index.html` no navegador ou acesse o app publicado:
+https://massa-certa.vercel.app
 
 ## Tecnologia
 HTML, CSS e JavaScript puro + Chart.js. Sem framework, sem build.

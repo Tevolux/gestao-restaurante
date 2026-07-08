@@ -58,7 +58,7 @@ git log --oneline          # histórico resumido
 
 ```bash
 # só na primeira vez, conectar o repositório remoto:
-git remote add origin https://github.com/SEU-USUARIO/massa-certa.git
+git remote add origin https://github.com/Tevolux/gestao-restaurante.git
 git branch -M main
 git push -u origin main
 
@@ -74,7 +74,8 @@ A Vercel está ligada ao GitHub. O ciclo é automático:
 editar → git add . → git commit -m "..." → git push → a Vercel republica sozinha
 ```
 
-Depois do push, é só atualizar o link de produção e ver no ar.
+Depois do push, a Vercel republica sozinha e o app fica no ar em:
+**https://massa-certa.vercel.app**
 
 ---
 
