@@ -383,3 +383,39 @@
   .topbar .tt p{ display:none; }
   .login-card{ padding:24px 20px; }
 }
+
+/* ============================================================
+   ORIENTAÇÃO — CELULAR DEITADO (paisagem, tela baixa)
+   Em pé (retrato) já é tratado pelos breakpoints de largura acima.
+   Deitado sobra largura e FALTA altura, então:
+   • o menu volta pra lateral (vertical) → aproveita a largura;
+   • topo e gráficos encolhem → devolvem a altura pro conteúdo.
+   Só telas baixas (≤ 600px de altura) entram aqui — desktop e
+   tablet em pé continuam intactos.
+   ============================================================ */
+@media (orientation:landscape) and (max-height:600px){
+  /* menu lateral de volta, mais estreito, rolando se precisar */
+  .app{ grid-template-columns:180px 1fr; }
+  .sidebar{ position:sticky; top:0; height:calc(100vh - 30px);
+    flex-direction:column; padding:12px 10px; overflow-y:auto; }
+  .nav{ flex-direction:column; overflow:visible; gap:2px; margin-top:6px; }
+  .nav-item{ flex:none; white-space:normal; padding:8px 10px; }
+  .nav-item .soon{ display:inline; }             /* volta o selo "breve" */
+  .nav-label{ display:block; padding:10px 10px 4px; }
+  .side-foot{ display:flex; margin-top:auto; }   /* usuário + Sair acessíveis */
+
+  /* topo e conteúdo compactos pra ganhar altura */
+  .topbar{ padding:12px 18px; }
+  .content{ padding:16px 18px 46px; max-width:100%; }
+
+  /* gráficos mais baixos (o !important vence o height inline
+     do gráfico de sazonalidade no index.html) */
+  .chart-box{ height:190px !important; }
+
+  /* sobra largura: KPIs em 2 colunas em vez de empilhados */
+  .kpis{ grid-template-columns:1fr 1fr; }
+
+  /* modais aproveitam a tela deitada, com rolagem interna */
+  .modal{ padding:3vh 16px; align-items:flex-start; }
+  .modal-card{ min-height:auto; }
+}
