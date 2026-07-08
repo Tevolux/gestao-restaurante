@@ -572,17 +572,21 @@ async function sair(){ if (sb) await sb.auth.signOut(); }
   if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); fazerLogin(); } });
 });
 
+let usuarioAtual = null;   // id do usuário logado — evita recarregar tudo a cada evento de auth (refresh de token, foco na aba)
 async function entrarApp(session){
   document.getElementById('login').style.display = 'none';
   const email = (session && session.user) ? session.user.email : '';
   const elEmail = document.getElementById('user-email'); if (elEmail) elEmail.textContent = email || 'Usuário';
-  const elAv = document.getElementById('user-av'); if (elAv) elAv.textContent = (email[0] || 'U').toUpperCase();
+  const elAv = document.getElementById('user-av'); if (elAv) elAv.textContent = ((email && email[0]) || 'U').toUpperCase();
+  const uid = (session && session.user) ? session.user.id : null;
+  if (uid && uid === usuarioAtual) return;   // já carregado para este usuário → não recarrega à toa
+  usuarioAtual = uid;
   await carregarPrecos();
   await carregarReceitas();
   await carregarColaboradores();
   carregarPagamentos();
 }
-function sairApp(){ document.getElementById('login').style.display = 'flex'; }
+function sairApp(){ usuarioAtual = null; document.getElementById('login').style.display = 'flex'; }
 
 async function carregarPrecos(){
   if (!sb) return;
