@@ -57,6 +57,13 @@ function compact(n){
   return '€ ' + br(n,0);
 }
 
+/* cores dos gráficos conforme o tema (claro/escuro) */
+function temaEscuro(){ return document.documentElement.dataset.theme === 'dark'; }
+function cEixo(){ return temaEscuro() ? '#8F887D' : '#9B968C'; }
+function cGrade(){ return temaEscuro() ? 'rgba(255,255,255,.07)' : '#EEEBE3'; }
+function cRotulo(){ return temaEscuro() ? '#E8E5DE' : '#1D1B15'; }
+function cBordaFatia(){ return temaEscuro() ? '#211E18' : '#fff'; }
+
 document.getElementById('hoje-data').textContent =
   new Date().toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long' });
 
@@ -82,6 +89,7 @@ function animateVal(el, target, fmt){
 
 /* ===== navegação ===== */
 const META = {
+  menu:['Menu','Todas as áreas do sistema em um só lugar'],
   dashboard:['Dashboard','Visão geral da operação de hoje'],
   receitas:['Receitas','Monte pratos e calcule o custo'],
   ingredientes:['Ingredientes','Cadastro e preços dos insumos'],
@@ -302,7 +310,7 @@ document.getElementById('f-estacao').innerHTML =
   '<option value="ano">Ano todo</option><option value="inverno">Inverno</option><option value="primavera">Primavera</option><option value="verao">Verão</option><option value="outono">Outono</option>';
 popularPaises('todas');
 
-let pieChart, barChart;
+let pieChart, barChart, dashChart = null;
 function renderVendas(){
   const reg = document.getElementById('f-regiao').value;
   const paisSel = document.getElementById('f-pais').value;
@@ -339,9 +347,9 @@ function renderVendas(){
   if (!pieChart){
     pieChart = new Chart(document.getElementById('pie-pratos'), {
       type:'doughnut',
-      data:{ labels:PRATOS, datasets:[{ data:dishCounts, offset:offsets, backgroundColor:CORES_PIZZA, borderColor:'#fff', borderWidth:2 }] },
+      data:{ labels:PRATOS, datasets:[{ data:dishCounts, offset:offsets, backgroundColor:CORES_PIZZA, borderColor:cBordaFatia(), borderWidth:2 }] },
       options:{ responsive:true, maintainAspectRatio:false, cutout:'58%',
-        plugins:{ legend:{ position:'right', labels:{ color:'#1D1B15', font:{family:'Plus Jakarta Sans', size:12}, usePointStyle:true, pointStyleWidth:10, padding:9 } },
+        plugins:{ legend:{ position:'right', labels:{ color:cRotulo(), font:{family:'Plus Jakarta Sans', size:12}, usePointStyle:true, pointStyleWidth:10, padding:9 } },
           tooltip:{ callbacks:{ label:(c)=> c.label + ': ' + itNum(c.parsed) + ' pratos' } } } },
     });
   } else { pieChart.data.datasets[0].data = dishCounts; pieChart.data.datasets[0].offset = offsets; pieChart.update(); }
@@ -377,8 +385,8 @@ function renderVendas(){
       data:{ labels:MESES, datasets:[{ data:serieBar, backgroundColor:coresBar, borderRadius:6, maxBarThickness:36 }] },
       options:{ responsive:true, maintainAspectRatio:false,
         plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=> itNum(c.parsed.y) + (pratoSel!=='todos' ? ' pratos' : ' clientes') } } },
-        scales:{ x:{ grid:{display:false}, ticks:{ color:'#9B968C', font:{family:'Plus Jakarta Sans', size:11} } },
-          y:{ grid:{color:'#EEEBE3'}, ticks:{ color:'#9B968C', font:{family:'Plus Jakarta Sans', size:11}, callback:(v)=> (v>=1000?(v/1000)+'k':v) }, beginAtZero:true } } },
+        scales:{ x:{ grid:{display:false}, ticks:{ color:cEixo(), font:{family:'Plus Jakarta Sans', size:11} } },
+          y:{ grid:{color:cGrade()}, ticks:{ color:cEixo(), font:{family:'Plus Jakarta Sans', size:11}, callback:(v)=> (v>=1000?(v/1000)+'k':v) }, beginAtZero:true } } },
     });
   } else { barChart.data.datasets[0].data = serieBar; barChart.data.datasets[0].backgroundColor = coresBar; barChart.update(); }
 
@@ -430,15 +438,15 @@ function desenharDashboard(){
   ).join('');
 
   /* gráfico */
-  new Chart(document.getElementById('dash-chart'), {
+  dashChart = new Chart(document.getElementById('dash-chart'), {
     type:'line',
     data:{ labels: ult14.map(d => d.data.slice(8,10)+'/'+d.data.slice(5,7)),
       datasets:[{ label:'Pratos/dia', data: ult14.map(d=>d.qtd), borderColor:'#2E6B52',
         backgroundColor:'rgba(46,107,82,.10)', fill:true, tension:.35, borderWidth:2.5, pointRadius:0, pointHoverRadius:5 }] },
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=>br(c.parsed.y,0)+' pratos' } } },
-      scales:{ x:{ grid:{display:false}, ticks:{ color:'#9B968C', font:{family:'Plus Jakarta Sans', size:11} } },
-        y:{ grid:{ color:'#EEEBE3' }, ticks:{ color:'#9B968C', font:{family:'Plus Jakarta Sans', size:11} }, beginAtZero:true } } },
+      scales:{ x:{ grid:{display:false}, ticks:{ color:cEixo(), font:{family:'Plus Jakarta Sans', size:11} } },
+        y:{ grid:{ color:cGrade() }, ticks:{ color:cEixo(), font:{family:'Plus Jakarta Sans', size:11} }, beginAtZero:true } } },
   });
   chartFeito = true;
 }
@@ -468,6 +476,10 @@ const CMDS = [
   { label:'Adicionar colaborador',  hint:'Ação',    run:()=>{ navegar('colaboradores'); abrirCadastroColab(); } },
   { label:'Pagamentos',             hint:'Ir para', run:()=>navegar('pagamentos') },
   { label:'Analisar vendas por país', hint:'Ação',  run:()=>navegar('vendas') },
+  { label:'Menu',                     hint:'Ir para', run:()=>navegar('menu') },
+  { label:'Configurações da conta',   hint:'Conta',   run:()=>abrirSettings() },
+  { label:'Mudar tema (claro/escuro)',hint:'Ação',    run:()=>aplicarTema(temaEscuro() ? 'light' : 'dark') },
+  { label:'Sair da conta',            hint:'Ação',    run:()=>sair() },
 ];
 let cmdSel = 0, cmdFiltrados = CMDS.slice();
 function openCmd(){
@@ -564,7 +576,7 @@ async function criarConta(){
     mostrarErroLogin('Conta criada! Confirme o link enviado ao seu email para entrar.', true);
   }
 }
-async function sair(){ if (sb) await sb.auth.signOut(); }
+async function sair(){ fecharSettings(); if (sb) await sb.auth.signOut(); }
 
 /* Enter em qualquer campo do login dispara "Entrar" */
 ['lg-email','lg-senha'].forEach(id => {
@@ -573,11 +585,14 @@ async function sair(){ if (sb) await sb.auth.signOut(); }
 });
 
 let usuarioAtual = null;   // id do usuário logado — evita recarregar tudo a cada evento de auth (refresh de token, foco na aba)
+let usuarioMeta = {}, emailAtual = '', perfilFoto = null;
 async function entrarApp(session){
   document.getElementById('login').style.display = 'none';
   const email = (session && session.user) ? session.user.email : '';
-  const elEmail = document.getElementById('user-email'); if (elEmail) elEmail.textContent = email || 'Usuário';
-  const elAv = document.getElementById('user-av'); if (elAv) elAv.textContent = ((email && email[0]) || 'U').toUpperCase();
+  emailAtual = email;
+  usuarioMeta = (session && session.user && session.user.user_metadata) ? session.user.user_metadata : {};
+  const elEmail = document.getElementById('user-email'); if (elEmail) elEmail.textContent = (usuarioMeta.nome || email || 'Usuário');
+  aplicarAvatar();
   const uid = (session && session.user) ? session.user.id : null;
   if (uid && uid === usuarioAtual) return;   // já carregado para este usuário → não recarrega à toa
   usuarioAtual = uid;
@@ -887,4 +902,91 @@ async function salvarPagamento(cid, card){
   if (error){ console.error(error); toast('Erro ao salvar.', false); return; }
   toast('Pagamento salvo');
   carregarPagamentos();
+}
+
+/* ================= TEMA (claro / escuro) ================= */
+function marcarTema(t){
+  const c = document.getElementById('tema-claro'), e = document.getElementById('tema-escuro');
+  if (c) c.classList.toggle('on', t !== 'dark');
+  if (e) e.classList.toggle('on', t === 'dark');
+}
+function aplicarTema(t){
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem('tema', t); } catch (e) {}
+  marcarTema(t);
+  redesenharGraficos();                 // atualiza as cores dos gráficos na hora
+}
+function redesenharGraficos(){
+  if (dashChart){ dashChart.destroy(); dashChart = null; chartFeito = false; desenharDashboard(); }
+  if (pieChart || barChart){
+    if (pieChart){ pieChart.destroy(); pieChart = null; }
+    if (barChart){ barChart.destroy(); barChart = null; }
+    renderVendas();
+  }
+}
+/* aplica o tema salvo já na carga (o <head> também faz; aqui sincroniza o botão) */
+(function(){ let t = 'light'; try { t = localStorage.getItem('tema') || 'light'; } catch (e) {} document.documentElement.dataset.theme = t; marcarTema(t); })();
+
+/* ================= CONFIGURAÇÕES DA CONTA ================= */
+function aplicarAvatar(){
+  const foto = usuarioMeta && usuarioMeta.foto;
+  const inicial = ((emailAtual && emailAtual[0]) || 'U').toUpperCase();
+  ['user-av','topbar-av'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    if (foto){ el.style.backgroundImage = "url('" + foto + "')"; el.textContent = ''; }
+    else { el.style.backgroundImage = ''; el.textContent = inicial; }
+  });
+}
+function abrirSettings(){ carregarSettings(); document.getElementById('modal-settings').classList.add('aberto'); }
+function fecharSettings(){ document.getElementById('modal-settings').classList.remove('aberto'); }
+function carregarSettings(){
+  marcarTema(temaEscuro() ? 'dark' : 'light');
+  const m = usuarioMeta || {};
+  const g = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+  g('set-nome', m.nome); g('set-tel', m.telefone); g('set-email', emailAtual);
+  g('set-senha', ''); g('set-senha2', '');
+  perfilFoto = m.foto || null;
+  const prev = document.getElementById('set-foto-preview');
+  if (prev){
+    if (perfilFoto){ prev.style.backgroundImage = "url('" + perfilFoto + "')"; prev.classList.add('tem'); }
+    else { prev.style.backgroundImage = ''; prev.classList.remove('tem'); }
+  }
+}
+function onSettingsFoto(input){
+  const f = input.files && input.files[0]; if (!f) return;
+  redimensionarImagem(f, url => {
+    perfilFoto = url;
+    const p = document.getElementById('set-foto-preview');
+    p.style.backgroundImage = "url('" + url + "')"; p.classList.add('tem');
+  });
+}
+async function salvarPerfil(){
+  if (!sb){ toast('Configure o Supabase para salvar.', false); return; }
+  const nome = document.getElementById('set-nome').value.trim();
+  const telefone = document.getElementById('set-tel').value.trim();
+  const { error } = await sb.auth.updateUser({ data: { nome, telefone, foto: perfilFoto } });
+  if (error){ console.error(error); toast('Erro ao salvar os dados.', false); return; }
+  usuarioMeta = Object.assign({}, usuarioMeta, { nome, telefone, foto: perfilFoto });
+  aplicarAvatar();
+  const elEmail = document.getElementById('user-email'); if (elEmail) elEmail.textContent = nome || emailAtual || 'Usuário';
+  toast('Dados atualizados');
+}
+async function alterarEmail(){
+  if (!sb){ toast('Configure o Supabase.', false); return; }
+  const email = document.getElementById('set-email').value.trim();
+  if (!email){ toast('Digite o novo email.', false); return; }
+  if (email === emailAtual){ toast('Este já é o seu email.', false); return; }
+  const { error } = await sb.auth.updateUser({ email });
+  if (error){ console.error(error); toast(traduzErro(error.message), false); return; }
+  toast('Confirme o link enviado ao novo email.');
+}
+async function alterarSenha(){
+  if (!sb){ toast('Configure o Supabase.', false); return; }
+  const s1 = document.getElementById('set-senha').value, s2 = document.getElementById('set-senha2').value;
+  if (s1.length < 6){ toast('A senha precisa de ao menos 6 caracteres.', false); return; }
+  if (s1 !== s2){ toast('As senhas não conferem.', false); return; }
+  const { error } = await sb.auth.updateUser({ password: s1 });
+  if (error){ console.error(error); toast(traduzErro(error.message), false); return; }
+  document.getElementById('set-senha').value = ''; document.getElementById('set-senha2').value = '';
+  toast('Senha alterada');
 }
