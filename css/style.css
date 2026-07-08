@@ -326,3 +326,60 @@
 .pay-resumo b{ font-family:var(--mono); }
 .pay-total{ font-size:15px; }
 .pay-total b{ color:var(--accent); font-size:17px; }
+
+/* ============================================================
+   RESPONSIVO — polimento para tablet e celular
+   (só ajusta telas menores; o desktop continua igual)
+   ============================================================ */
+
+/* qualquer tabela rola dentro do próprio cartão, sem quebrar a página */
+.tbl-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+/* ---------- TABLET / MENU HORIZONTAL (≤ 820px) ---------- */
+@media (max-width:820px){
+  .nav-label{ display:none; }                    /* "Principal/Módulos" não cabem no menu horizontal */
+  .side-foot{ display:flex; margin-top:10px; }   /* mantém usuário + botão SAIR acessíveis no celular */
+  .content{ padding:22px 18px 74px; }
+  .topbar{ padding:16px 18px; }
+}
+
+/* ---------- CELULAR (≤ 560px) ---------- */
+@media (max-width:560px){
+  .content{ padding:18px 14px 78px; max-width:100%; }
+
+  .topbar{ padding:13px 14px; gap:10px; }
+  .topbar .tt h1{ font-size:18px; }
+  .topbar .tt p{ font-size:12px; }
+  .topbar .meta{ gap:9px; }
+  .topbar .date, .topbar .pill{ display:none; }  /* liberam espaço no topo */
+  .topsearch kbd{ display:none; }
+
+  .kpis{ gap:12px; }
+  .kpi{ padding:15px 16px; }
+  .kpi .val{ font-size:23px; }
+
+  .quick{ grid-template-columns:1fr; }
+  .card{ padding:18px; }
+  .callout{ gap:16px; padding:14px 16px; }
+  .callout .v{ font-size:19px; }
+
+  /* modal vira uma "folha" de tela cheia — mais confortável no toque */
+  .modal{ padding:0; }
+  .modal-card{ width:100%; min-height:100%; margin:0; border-radius:0; }
+  .modal-body{ padding:18px 16px; }
+  .modal-head, .modal-foot{ padding-left:16px; padding-right:16px; }
+
+  /* barra de status enxuta: mantém só o relógio à direita */
+  .statusbar{ padding:0 12px; font-size:11px; }
+  .statusbar .sb-right > *:not(#sb-clock){ display:none; }
+
+  .notif{ width:min(300px, calc(100vw - 28px)); }
+  #toasts{ left:14px; right:14px; bottom:42px; }  /* acima da barra de status, largura da tela */
+}
+
+/* ---------- CELULAR PEQUENO (≤ 380px) ---------- */
+@media (max-width:380px){
+  .kpis{ grid-template-columns:1fr; }
+  .topbar .tt p{ display:none; }
+  .login-card{ padding:24px 20px; }
+}
