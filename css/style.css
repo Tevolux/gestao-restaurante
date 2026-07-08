@@ -255,3 +255,74 @@
 .side-foot .who .wn{ display:block; font-size:13px; color:#E6E3DC; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .side-sair{ background:none; border:none; color:var(--side-idle); cursor:pointer; padding:6px; border-radius:8px; flex:none; display:grid; place-items:center; transition:background .14s, color .14s; }
 .side-sair:hover{ background:#2A2721; color:#F3F1EC; }
+
+/* ================= MODAL: CRIAR RECEITA ================= */
+.modal{ position:fixed; inset:0; z-index:75; background:rgba(23,21,15,.5); backdrop-filter:blur(3px);
+  display:none; align-items:flex-start; justify-content:center; padding:5vh 16px; overflow-y:auto; }
+.modal.aberto{ display:flex; animation:pgin .18s ease; }
+.modal-card{ width:min(640px,100%); background:var(--surface); border:1px solid var(--border); border-radius:18px;
+  box-shadow:0 24px 70px rgba(23,21,15,.3); overflow:hidden; margin:auto; }
+.modal-head{ display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid var(--border); }
+.modal-head h2{ margin:0; font-size:18px; }
+.modal-x{ border:none; background:var(--canvas); width:32px; height:32px; border-radius:9px; cursor:pointer; font-size:20px; color:var(--muted); line-height:1; }
+.modal-x:hover{ background:var(--neg-soft); color:var(--neg); }
+.modal-body{ padding:22px 24px; }
+.modal-foot{ display:flex; justify-content:flex-end; gap:10px; padding:16px 24px; border-top:1px solid var(--border); background:var(--canvas); position:sticky; bottom:0; }
+.rf-bloco{ margin-bottom:22px; }
+.rf-label{ display:block; font-size:11px; font-weight:600; color:var(--accent); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px; }
+.rf-foto{ display:flex; align-items:center; justify-content:center; height:170px; border:2px dashed var(--border); border-radius:14px;
+  background-size:cover; background-position:center; cursor:pointer; color:var(--muted); font-size:14px; transition:border-color .15s; }
+.rf-foto:hover{ border-color:var(--accent); }
+.rf-foto.tem{ border-style:solid; border-color:var(--border); }
+.rf-foto.tem .rf-foto-hint{ display:none; }
+.rf-textarea{ width:100%; min-height:120px; border:1px solid var(--border); border-radius:12px; background:var(--canvas);
+  padding:12px 14px; font-family:inherit; font-size:14px; color:var(--text); resize:vertical; line-height:1.6; }
+.rf-textarea:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+
+/* ================= CARTÕES DE RECEITA SALVA ================= */
+#rec-salvas{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+.rc{ border:1px solid var(--border); border-radius:16px; overflow:hidden; background:var(--surface); display:flex; flex-direction:column; }
+.rc-foto{ height:150px; background-size:cover; background-position:center; background-color:var(--canvas); }
+.rc-foto.rc-sem{ display:flex; align-items:center; justify-content:center; color:var(--faint); font-size:13px; }
+.rc-corpo{ padding:15px; }
+.rc-top{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+.rc-top b{ font-size:15px; }
+.rc-custo{ font-weight:600; color:var(--accent); }
+.rc-prep{ font-size:12.5px; color:var(--muted); margin-top:8px; line-height:1.5; white-space:pre-wrap; max-height:96px; overflow:auto; }
+
+/* ===== lista de ingredientes (aba Ingredientes) ===== */
+.inp-preco{ padding:1px 8px; max-width:130px; margin-left:auto; }
+.inp-preco input{ font-family:var(--mono); padding:6px 2px; text-align:right; }
+
+/* foto do cartão de receita clicável */
+.rc-foto{ cursor:pointer; }
+.rc-foto.rc-sem:hover{ color:var(--accent); }
+
+/* ================= COLABORADORES ================= */
+#colab-lista{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
+.colab-card{ border:1px solid var(--border); border-radius:16px; background:var(--surface); overflow:hidden; }
+.colab-foto{ height:150px; background-size:cover; background-position:center; background-color:var(--canvas); }
+.colab-foto.colab-sem{ display:flex; align-items:center; justify-content:center; font-size:42px; font-weight:700; color:var(--accent); background:var(--accent-soft); }
+.colab-info{ padding:15px; }
+.colab-nome{ font-weight:600; font-size:16px; }
+.colab-cargo{ color:var(--accent); font-size:13px; font-weight:600; margin-bottom:8px; }
+.colab-linha{ font-size:13px; color:var(--muted); margin-top:3px; word-break:break-word; }
+.docs-grid{ display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+.doc-thumb{ width:66px; height:66px; border-radius:9px; background-size:cover; background-position:center; background-color:var(--canvas); position:relative; border:1px solid var(--border); }
+.doc-thumb button{ position:absolute; top:-7px; right:-7px; width:20px; height:20px; border-radius:50%; border:none; background:var(--neg); color:#fff; cursor:pointer; font-size:12px; line-height:1; }
+
+/* ================= PAGAMENTOS ================= */
+.pay-card{ border:1px solid var(--border); border-radius:16px; padding:18px; margin-bottom:16px; background:var(--surface); }
+.pay-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+.pay-quem{ font-weight:600; font-size:16px; }
+.pay-contrato{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.pay-baixar{ font-size:13px; color:var(--accent); font-weight:600; background:none; border:none; cursor:pointer; padding:0; }
+.pay-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+@media (max-width:700px){ .pay-grid{ grid-template-columns:1fr 1fr; } }
+.pay-campo label{ display:block; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:6px; }
+.pay-campo .inp input{ font-family:var(--mono); }
+.pay-resumo{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  margin-top:16px; padding-top:14px; border-top:1px solid var(--border); font-size:14px; }
+.pay-resumo b{ font-family:var(--mono); }
+.pay-total{ font-size:15px; }
+.pay-total b{ color:var(--accent); font-size:17px; }

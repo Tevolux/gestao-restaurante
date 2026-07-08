@@ -1,10 +1,48 @@
 /* ===== dados base ===== */
 const PRECOS = {
-  'ovo':2.50,'sal':0.60,'farinha comum':0.90,'farinha de sêmola':1.30,'água':0.00,
-  'coxão mole':9.50,'paleta suína':5.50,'vitelo':14.00,'guanciale':12.00,
-  'parmesão':12.00,'pecorino':13.00,'tomate pelado':1.20,'cebola':0.90,
-  'salsão':1.50,'alho':4.00,'vinho tinto':3.00,'pimenta do reino':15.00,
-  'pesto':8.00,'molho de tartufo':35.00,
+  'farinha comum':0.90,'farinha de sêmola':1.30,'farinha integral':1.20,'arroz':1.50,
+  'arroz arbóreo':3.50,'fubá':1.20,'polenta':1.50,'pão':2.50,
+  'massa seca':1.60,'pão ralado':2.00,'amido de milho':2.00,'aveia':2.50,
+  'cuscuz':2.00,'ovo':2.50,'leite':1.00,'creme de leite':3.50,
+  'manteiga':8.00,'iogurte':2.50,'requeijão':6.00,'parmesão':12.00,
+  'pecorino':13.00,'mozzarella':8.00,'mozzarella de búfala':16.00,'burrata':16.00,
+  'ricota':6.00,'gorgonzola':12.00,'mascarpone':8.00,'provolone':10.00,
+  'grana padano':11.00,'queijo brie':14.00,'coxão mole':9.50,'paleta suína':5.50,
+  'vitelo':14.00,'guanciale':12.00,'pancetta':9.00,'bacon':8.00,
+  'presunto cru':25.00,'presunto cozido':12.00,'carne moída':8.00,'costela suína':7.00,
+  'costela bovina':9.00,'linguiça':8.00,'salame':18.00,'cordeiro':15.00,
+  'coelho':11.00,'filé mignon':28.00,'contrafilé':18.00,'frango':4.00,
+  'peito de frango':6.50,'coxa de frango':4.00,'peru':7.00,'pato':11.00,
+  'salmão':18.00,'bacalhau':15.00,'atum':16.00,'camarão':20.00,
+  'lula':12.00,'polvo':18.00,'mexilhão':6.00,'vôngole':13.00,
+  'anchova':14.00,'sardinha':6.00,'robalo':16.00,'cebola':0.90,
+  'alho':4.00,'tomate':2.00,'tomate pelado':1.20,'cenoura':1.00,
+  'batata':1.00,'batata-doce':1.50,'abobrinha':2.00,'berinjela':2.00,
+  'pimentão':2.50,'cogumelo':6.00,'cogumelo porcini':40.00,'aspargo':6.00,
+  'brócolis':2.50,'couve-flor':2.00,'espinafre':3.00,'rúcula':6.00,
+  'alface':2.00,'salsão':1.50,'funcho':2.50,'alho-poró':2.50,
+  'ervilha':3.00,'abóbora':1.50,'milho':2.00,'azeitona':6.00,
+  'alcaparra':12.00,'pepino':1.80,'repolho':1.20,'beterraba':1.50,
+  'manjericão':15.00,'salsinha':8.00,'alecrim':12.00,'tomilho':15.00,
+  'sálvia':15.00,'orégano':12.00,'hortelã':12.00,'louro':18.00,
+  'coentro':10.00,'cebolinha':8.00,'abacaxi':2.50,'limão':2.00,
+  'laranja':1.50,'maçã':2.00,'banana':1.80,'morango':6.00,
+  'uva':3.00,'pera':2.20,'pêssego':3.00,'melão':1.50,
+  'melancia':1.00,'figo':5.00,'damasco':6.00,'cereja':8.00,
+  'kiwi':3.00,'manga':4.00,'framboesa':12.00,'mirtilo':12.00,
+  'tâmara':8.00,'sal':0.60,'pimenta do reino':15.00,'pimenta calabresa':18.00,
+  'noz-moscada':30.00,'canela':20.00,'cúrcuma':8.00,'páprica':12.00,
+  'curry':14.00,'cominho':14.00,'gengibre':4.00,'cravo':22.00,
+  'erva-doce':10.00,'azeite':8.00,'azeite extra virgem':12.00,'óleo de girassol':2.00,
+  'banha':4.00,'vinagre':2.00,'vinagre balsâmico':8.00,'vinagre de vinho':3.00,
+  'pesto':8.00,'molho de tomate':2.00,'molho de tartufo':35.00,'mostarda':5.00,
+  'maionese':4.00,'shoyu':6.00,'extrato de tomate':3.00,'grão de bico':2.00,
+  'lentilha':2.50,'feijão':2.50,'ervilha seca':2.00,'açúcar':1.00,
+  'açúcar de confeiteiro':2.00,'mel':8.00,'chocolate':10.00,'cacau':12.00,
+  'chocolate amargo':12.00,'noz':12.00,'amêndoa':10.00,'pinoli':60.00,
+  'avelã':12.00,'castanha':8.00,'gergelim':6.00,'pistache':20.00,
+  'água':0.00,'vinho tinto':3.00,'vinho branco':3.00,'vinho marsala':7.00,
+  'conhaque':15.00,
 };
 const dl = document.getElementById('ing-list');
 function montarDatalist(){ dl.innerHTML = ''; Object.keys(PRECOS).forEach(n => { const o = document.createElement('option'); o.value = n; dl.appendChild(o); }); }
@@ -46,7 +84,10 @@ function animateVal(el, target, fmt){
 const META = {
   dashboard:['Dashboard','Visão geral da operação de hoje'],
   receitas:['Receitas','Monte pratos e calcule o custo'],
+  ingredientes:['Ingredientes','Cadastro e preços dos insumos'],
   vendas:['Vendas','Acompanhe o que mais e menos vende'],
+  colaboradores:['Colaboradores','A equipe do restaurante'],
+  pagamentos:['Pagamentos','Folha da equipe: salários e horas'],
   operacao:['Operação','Produção, compras e margem'],
   projecao:['Projeção','Crescimento e sazonalidade'],
   gestao:['Gestão','Tarefas e acompanhamento'],
@@ -63,6 +104,7 @@ function navegar(id){
   document.getElementById('pg-sub').textContent = META[id][1];
   if (id === 'dashboard' && !chartFeito) desenharDashboard();
   if (id === 'vendas') renderVendas();
+  if (id === 'pagamentos') carregarPagamentos();
   window.scrollTo(0,0);
 }
 
@@ -96,42 +138,14 @@ function recalcularReceita(){
   const rende = Math.max(1, parseInt(document.getElementById('rec-rende').value,10)||1);
   document.getElementById('rec-custo-total').textContent = eur(total);
   document.getElementById('rec-custo-prato').textContent = eur(total/rende);
-  recalcularEscala();
-}
-function setEscala(n, botao){
-  document.getElementById('rec-escala').value = n;
-  if (botao){ botao.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('on')); botao.classList.add('on'); }
-  recalcularEscala();
-}
-function recalcularEscala(){
-  const rende = Math.max(1, parseInt(document.getElementById('rec-rende').value,10)||1);
-  const alvo  = Math.max(1, parseInt(document.getElementById('rec-escala').value,10)||1);
-  const fator = alvo/rende;
-  let html='', totalCusto=0, tem=false;
-  linhasBody.querySelectorAll('tr').forEach(tr => {
-    const nome = tr.querySelector('.ing-nome').value.trim();
-    const qtd = parseFloat(tr.querySelector('.ing-qtd').value)||0;
-    if (!nome || qtd<=0) return;
-    tem = true;
-    const preco = precoDe(nome);
-    const q = qtd*fator;
-    totalCusto += preco!==null ? (q/1000)*preco : 0;
-    const mostra = q>=1000 ? (br(q/1000,2)+' kg') : (br(q,0)+' g');
-    html += '<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)"><span>'+nome+'</span><span class="mono" style="font-weight:500">'+mostra+'</span></div>';
-  });
-  const saida = document.getElementById('rec-escala-saida');
-  if (!tem){ saida.innerHTML = '<p class="hint">Adicione ingredientes acima para ver a escala.</p>'; return; }
-  saida.innerHTML = '<p class="hint" style="margin:0 0 8px">Para <b>'+br(alvo,0)+' pratos</b> você precisa de:</p>'+html+
-    '<div class="callout" style="margin-top:14px"><div><div class="lbl">Custo total ('+br(alvo,0)+' pratos)</div><div class="v">'+eur(totalCusto)+'</div></div>'+
-    '<div><div class="lbl">Custo por prato</div><div class="v">'+eur(totalCusto/alvo)+'</div></div></div>';
 }
 document.getElementById('rec-rende').addEventListener('input', recalcularReceita);
-document.getElementById('rec-escala').addEventListener('input', recalcularEscala);
 
 let receitasSalvas = [];
 async function salvarReceita(){
   const nome = document.getElementById('rec-nome').value.trim() || 'Receita sem nome';
   const rende = Math.max(1, parseInt(document.getElementById('rec-rende').value,10)||1);
+  const modo_preparo = document.getElementById('rec-preparo').value.trim();
   let total=0; const itens=[];
   linhasBody.querySelectorAll('tr').forEach(tr => {
     const n = tr.querySelector('.ing-nome').value.trim();
@@ -142,21 +156,74 @@ async function salvarReceita(){
   });
   if (!itens.length){ toast('Adicione ao menos um ingrediente.', false); return; }
   if (!sb){ toast('Configure o Supabase (js/config.js) para salvar.', false); return; }
-  const { error } = await sb.from('receitas').insert({ nome, rende, itens, custo_por_prato: total/rende });
+  const { error } = await sb.from('receitas').insert({ nome, rende, itens, custo_por_prato: total/rende, modo_preparo, foto: fotoAtual });
   if (error){ console.error(error); toast('Erro ao salvar. Tente de novo.', false); return; }
   toast('Receita salva no banco');
+  fecharCriarReceita();
   carregarReceitas();
 }
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
 function renderSalvas(){
   document.getElementById('rec-contador').textContent = receitasSalvas.length;
   document.getElementById('rec-salvas').innerHTML = receitasSalvas.map(r => {
-    const itensTxt = (r.itens||[]).map(x => x.ing+' ('+br(x.g,0)+' g)').join(' · ');
-    return '<div class="saved"><div><b>'+r.nome+'</b> <span class="hint">· rende '+r.rende+' prato(s)</span>'+
-      '<div class="hint" style="margin-top:4px">'+itensTxt+'</div></div>'+
-      '<div style="text-align:right;white-space:nowrap"><div class="mono" style="font-weight:600;font-size:16px">'+eur(r.custo_por_prato)+'</div>'+
-      '<div class="hint">por prato</div><button class="btn ghost" style="margin-top:6px;padding:5px 11px" onclick="removerReceita('+r.id+')">remover</button></div></div>';
-  }).join('') || '<p class="hint">Nenhuma receita salva ainda.</p>';
+    const itensTxt = (r.itens||[]).map(x => escapeHtml(x.ing)+' ('+br(x.g,0)+' g)').join(', ');
+    const foto = r.foto
+      ? '<div class="rc-foto" style="background-image:url(\''+r.foto+'\')" onclick="trocarFoto('+r.id+')" title="Trocar foto"></div>'
+      : '<div class="rc-foto rc-sem" onclick="trocarFoto('+r.id+')">+ adicionar foto</div>';
+    const prep = r.modo_preparo ? '<div class="rc-prep"><b>Preparo:</b> '+escapeHtml(r.modo_preparo)+'</div>' : '';
+    return '<div class="rc">'+foto+
+      '<div class="rc-corpo">'+
+        '<div class="rc-top"><b>'+escapeHtml(r.nome)+'</b><span class="mono rc-custo">'+eur(r.custo_por_prato)+'</span></div>'+
+        '<div class="hint">rende '+r.rende+' prato(s) · '+eur(r.custo_por_prato)+' por prato</div>'+
+        '<div class="hint" style="margin-top:6px"><b>Ingredientes:</b> '+itensTxt+'</div>'+
+        prep+
+        '<button class="btn ghost" style="margin-top:10px;padding:5px 12px" onclick="removerReceita('+r.id+')">remover</button>'+
+      '</div></div>';
+  }).join('') || '<p class="hint">Nenhuma receita ainda. Clique em <b>Criar receita</b> para começar.</p>';
 }
+
+/* ---- foto do prato (redimensiona antes de salvar, pra não pesar) ---- */
+let fotoAtual = null;
+function onFotoSelecionada(input){
+  const file = input.files && input.files[0];
+  if (!file) return;
+  redimensionarImagem(file, function(dataUrl){
+    fotoAtual = dataUrl;
+    const prev = document.getElementById('rec-foto-preview');
+    prev.style.backgroundImage = 'url(\''+dataUrl+'\')';
+    prev.classList.add('tem');
+  });
+}
+function redimensionarImagem(file, cb){
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 700; let w = img.width, h = img.height;
+      if (w > h && w > max){ h = Math.round(h*max/w); w = max; }
+      else if (h > max){ w = Math.round(w*max/h); h = max; }
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      cb(cv.toDataURL('image/jpeg', 0.72));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ---- abrir / fechar a tela de criar receita ---- */
+function abrirCriarReceita(){
+  document.getElementById('rec-nome').value = '';
+  document.getElementById('rec-rende').value = 1;
+  document.getElementById('rec-preparo').value = '';
+  fotoAtual = null;
+  const prev = document.getElementById('rec-foto-preview'); prev.style.backgroundImage = ''; prev.classList.remove('tem');
+  const inp = document.getElementById('rec-foto-input'); if (inp) inp.value = '';
+  linhasBody.innerHTML = ''; addLinha(); addLinha(); recalcularReceita();
+  document.getElementById('modal-receita').classList.add('aberto');
+}
+function fecharCriarReceita(){ document.getElementById('modal-receita').classList.remove('aberto'); }
 async function removerReceita(id){
   if (!sb) return;
   const { error } = await sb.from('receitas').delete().eq('id', id);
@@ -164,7 +231,7 @@ async function removerReceita(id){
   toast('Receita removida');
   carregarReceitas();
 }
-addLinha('coxão mole',300); addLinha('tomate pelado',400); addLinha('cebola',100); renderSalvas();
+renderSalvas();
 
 /* ===== VENDAS (dados mockados, fixos) ===== */
 const PRATOS = ['Ragu','Carbonara','Amatriciana','Cacio e pepe','Gricia','Pesto','Tartufo'];
@@ -395,6 +462,11 @@ const CMDS = [
   { label:'Projeção',               hint:'Ir para', run:()=>navegar('projecao') },
   { label:'Gestão',                 hint:'Ir para', run:()=>navegar('gestao') },
   { label:'Nova receita',           hint:'Ação',    run:()=>navegar('receitas') },
+  { label:'Ingredientes',           hint:'Ir para', run:()=>navegar('ingredientes') },
+  { label:'Adicionar ingrediente',  hint:'Ação',    run:()=>navegar('ingredientes') },
+  { label:'Colaboradores',          hint:'Ir para', run:()=>navegar('colaboradores') },
+  { label:'Adicionar colaborador',  hint:'Ação',    run:()=>{ navegar('colaboradores'); abrirCadastroColab(); } },
+  { label:'Pagamentos',             hint:'Ir para', run:()=>navegar('pagamentos') },
   { label:'Analisar vendas por país', hint:'Ação',  run:()=>navegar('vendas') },
 ];
 let cmdSel = 0, cmdFiltrados = CMDS.slice();
@@ -474,6 +546,8 @@ async function entrarApp(session){
   const elAv = document.getElementById('user-av'); if (elAv) elAv.textContent = (email[0] || 'U').toUpperCase();
   await carregarPrecos();
   await carregarReceitas();
+  await carregarColaboradores();
+  carregarPagamentos();
 }
 function sairApp(){ document.getElementById('login').style.display = 'flex'; }
 
@@ -481,9 +555,67 @@ async function carregarPrecos(){
   if (!sb) return;
   try {
     const { data, error } = await sb.from('ingredientes').select('nome, preco_kg');
-    if (!error && data){ data.forEach(r => { PRECOS[r.nome] = Number(r.preco_kg); }); montarDatalist(); recalcularReceita(); }
+    if (!error && data){ data.forEach(r => { PRECOS[r.nome] = Number(r.preco_kg); }); }
   } catch (e){ console.error(e); }
+  atualizarListaIngredientes(); montarDatalist(); recalcularReceita(); renderIngredientes();
 }
+
+/* ---- gerenciar ingredientes (aba Ingredientes) ---- */
+let listaIngredientes = [];
+function atualizarListaIngredientes(){
+  listaIngredientes = Object.keys(PRECOS).map(n => ({ nome:n, preco_kg:PRECOS[n] }))
+    .sort((a,b) => a.nome.localeCompare(b.nome, 'pt'));
+}
+function renderIngredientes(){
+  const cont = document.getElementById('ing-contador'); if (cont) cont.textContent = listaIngredientes.length;
+  const alvo = document.getElementById('ing-lista'); if (!alvo) return;
+  const busca = (document.getElementById('ing-busca')?.value || '').trim().toLowerCase();
+  const filtrados = listaIngredientes.filter(x => x.nome.toLowerCase().includes(busca));
+  alvo.innerHTML = filtrados.map(x =>
+    '<tr data-nome="'+escapeHtml(x.nome)+'"><td>'+escapeHtml(x.nome)+'</td>'+
+    '<td class="num"><div class="inp inp-preco"><span class="pre">€</span><input class="ing-preco-inp" type="number" min="0" step="0.1" value="'+x.preco_kg.toFixed(2)+'"></div></td>'+
+    '<td style="width:44px"><button class="rm ing-rm" title="remover" aria-label="remover">&times;</button></td></tr>'
+  ).join('') || '<tr><td colspan="3" class="hint">Nenhum ingrediente encontrado.</td></tr>';
+  alvo.querySelectorAll('tr[data-nome]').forEach(tr => {
+    const nome = tr.getAttribute('data-nome');
+    const inp = tr.querySelector('.ing-preco-inp'); if (inp) inp.addEventListener('change', () => atualizarPreco(nome, inp.value));
+    const rm = tr.querySelector('.ing-rm'); if (rm) rm.addEventListener('click', () => removerIngrediente(nome));
+  });
+}
+async function adicionarIngrediente(){
+  const nome = document.getElementById('ing-novo-nome').value.trim().toLowerCase();
+  const preco = parseFloat(document.getElementById('ing-novo-preco').value);
+  if (!nome){ toast('Digite o nome do ingrediente.', false); return; }
+  if (isNaN(preco) || preco < 0){ toast('Digite um preço válido.', false); return; }
+  if (!sb){ toast('Configure o Supabase para salvar.', false); return; }
+  const { error } = await sb.from('ingredientes').upsert({ nome, preco_kg: preco }, { onConflict: 'nome' });
+  if (error){ console.error(error); toast('Erro ao salvar.', false); return; }
+  PRECOS[nome] = preco;
+  document.getElementById('ing-novo-nome').value = '';
+  document.getElementById('ing-novo-preco').value = '';
+  atualizarListaIngredientes(); montarDatalist(); renderIngredientes();
+  toast('Ingrediente salvo');
+}
+async function atualizarPreco(nome, valor){
+  const preco = parseFloat(valor);
+  if (isNaN(preco) || preco < 0 || !sb) return;
+  const { error } = await sb.from('ingredientes').upsert({ nome, preco_kg: preco }, { onConflict: 'nome' });
+  if (error){ console.error(error); toast('Erro ao atualizar.', false); return; }
+  PRECOS[nome] = preco;
+  const it = listaIngredientes.find(x => x.nome === nome); if (it) it.preco_kg = preco;
+  recalcularReceita();
+  toast('Preço atualizado');
+}
+async function removerIngrediente(nome){
+  if (!sb) return;
+  const { error } = await sb.from('ingredientes').delete().eq('nome', nome);
+  if (error){ console.error(error); toast('Erro ao remover.', false); return; }
+  delete PRECOS[nome];
+  atualizarListaIngredientes(); montarDatalist(); renderIngredientes();
+  toast('Ingrediente removido');
+}
+atualizarListaIngredientes(); renderIngredientes();
+const buscaIng = document.getElementById('ing-busca'); if (buscaIng) buscaIng.addEventListener('input', renderIngredientes);
 async function carregarReceitas(){
   if (!sb) return;
   try {
@@ -498,4 +630,224 @@ if (sb){
   sb.auth.onAuthStateChange((_event, session) => { if (session) entrarApp(session); else sairApp(); });
 } else {
   mostrarErroLogin('Configure suas chaves em js/config.js para ativar o login.');
+}
+
+/* ---- trocar a foto de uma receita já salva (clicando no cartão) ---- */
+let fotoTrocaId = null;
+function trocarFoto(id){ fotoTrocaId = id; const inp = document.getElementById('rec-foto-troca'); inp.value = ''; inp.click(); }
+const inpTroca = document.getElementById('rec-foto-troca');
+if (inpTroca) inpTroca.addEventListener('change', function(){
+  const file = this.files && this.files[0];
+  if (!file || !fotoTrocaId) return;
+  redimensionarImagem(file, async function(dataUrl){
+    if (!sb) return;
+    const { error } = await sb.from('receitas').update({ foto: dataUrl }).eq('id', fotoTrocaId);
+    if (error){ console.error(error); toast('Erro ao salvar a foto.', false); return; }
+    toast('Foto atualizada'); carregarReceitas();
+  });
+});
+
+/* ================= COLABORADORES ================= */
+let listaColab = [];
+let colabFoto = null;   // foto do colaborador (base64)
+let colabDocs = [];     // documentos/comprovantes (base64[])
+
+async function carregarColaboradores(){
+  if (!sb) return;
+  try {
+    const { data, error } = await sb.from('colaboradores').select('*').order('nome');
+    if (!error && data){ listaColab = data; renderColaboradores(); }
+  } catch (e){ console.error(e); }
+}
+function renderColaboradores(){
+  const cont = document.getElementById('colab-contador'); if (cont) cont.textContent = listaColab.length;
+  const alvo = document.getElementById('colab-lista'); if (!alvo) return;
+  alvo.innerHTML = listaColab.map(c => {
+    const foto = c.foto
+      ? '<div class="colab-foto" style="background-image:url(\''+c.foto+'\')"></div>'
+      : '<div class="colab-foto colab-sem">'+escapeHtml((c.nome||'?')[0].toUpperCase())+'</div>';
+    const ndocs = (c.documentos||[]).length;
+    return '<div class="colab-card">'+foto+
+      '<div class="colab-info">'+
+        '<div class="colab-nome">'+escapeHtml(c.nome)+'</div>'+
+        '<div class="colab-cargo">'+escapeHtml(c.cargo||'—')+'</div>'+
+        '<div class="colab-linha">📞 '+escapeHtml(c.telefone||'—')+'</div>'+
+        '<div class="colab-linha">✉️ '+escapeHtml(c.email||'—')+'</div>'+
+        '<div class="colab-linha">📍 '+escapeHtml(c.endereco||'—')+'</div>'+
+        (ndocs ? '<div class="colab-linha hint">📎 '+ndocs+' documento(s) anexado(s)</div>' : '')+
+        '<button class="btn ghost" style="margin-top:10px;padding:5px 12px" onclick="removerColaborador('+c.id+')">remover</button>'+
+      '</div></div>';
+  }).join('') || '<p class="hint">Nenhum colaborador ainda. Clique em <b>Adicionar colaborador</b>.</p>';
+}
+function abrirCadastroColab(){
+  ['colab-nome','colab-cargo','colab-doc','colab-endereco','colab-tel','colab-email'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  colabFoto = null; colabDocs = [];
+  const prev = document.getElementById('colab-foto-preview'); if (prev){ prev.style.backgroundImage = ''; prev.classList.remove('tem'); }
+  renderDocsPreview();
+  document.getElementById('modal-colab').classList.add('aberto');
+}
+function fecharCadastroColab(){ document.getElementById('modal-colab').classList.remove('aberto'); }
+function onColabFoto(input){
+  const file = input.files && input.files[0]; if (!file) return;
+  redimensionarImagem(file, dataUrl => {
+    colabFoto = dataUrl;
+    const p = document.getElementById('colab-foto-preview'); p.style.backgroundImage = 'url(\''+dataUrl+'\')'; p.classList.add('tem');
+  });
+}
+function onColabDocs(input){
+  Array.from(input.files || []).forEach(f => redimensionarImagem(f, dataUrl => { colabDocs.push(dataUrl); renderDocsPreview(); }));
+  input.value = '';
+}
+function renderDocsPreview(){
+  const alvo = document.getElementById('colab-docs-preview'); if (!alvo) return;
+  alvo.innerHTML = colabDocs.map((d,i) => '<div class="doc-thumb" style="background-image:url(\''+d+'\')"><button type="button" onclick="removerDoc('+i+')" title="remover">&times;</button></div>').join('');
+}
+function removerDoc(i){ colabDocs.splice(i,1); renderDocsPreview(); }
+async function salvarColaborador(){
+  const nome = document.getElementById('colab-nome').value.trim();
+  if (!nome){ toast('Digite o nome do colaborador.', false); return; }
+  if (!sb){ toast('Configure o Supabase para salvar.', false); return; }
+  const reg = {
+    nome,
+    cargo:     document.getElementById('colab-cargo').value.trim(),
+    documento: document.getElementById('colab-doc').value.trim(),
+    endereco:  document.getElementById('colab-endereco').value.trim(),
+    telefone:  document.getElementById('colab-tel').value.trim(),
+    email:     document.getElementById('colab-email').value.trim(),
+    foto:      colabFoto,
+    documentos: colabDocs,
+  };
+  const { error } = await sb.from('colaboradores').insert(reg);
+  if (error){ console.error(error); toast('Erro ao salvar.', false); return; }
+  toast('Colaborador cadastrado');
+  fecharCadastroColab();
+  carregarColaboradores();
+}
+async function removerColaborador(id){
+  if (!sb) return;
+  const { error } = await sb.from('colaboradores').delete().eq('id', id);
+  if (error){ console.error(error); toast('Erro ao remover.', false); return; }
+  toast('Colaborador removido');
+  carregarColaboradores();
+}
+renderColaboradores();
+
+/* ================= PAGAMENTOS DA EQUIPE ================= */
+let mapaPagamentos = {};   // colaborador_id -> registro salvo
+let contratos = {};        // colaborador_id -> { base64, nome } (anexo novo)
+
+function num(v){ const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? 0 : n; }
+
+async function carregarPagamentos(){
+  if (!sb) return;
+  try {
+    const { data, error } = await sb.from('pagamentos').select('*');
+    mapaPagamentos = {};
+    if (!error && data) data.forEach(p => { mapaPagamentos[p.colaborador_id] = p; });
+  } catch (e){ console.error(e); }
+  renderPagamentos();
+}
+function renderPagamentos(){
+  const alvo = document.getElementById('pay-lista'); if (!alvo) return;
+  if (!listaColab.length){
+    alvo.innerHTML = '<p class="hint">Cadastre a equipe na aba <b>Colaboradores</b> primeiro.</p>';
+    const tg = document.getElementById('pay-total-geral'); if (tg) tg.textContent = eur(0);
+    return;
+  }
+  alvo.innerHTML = listaColab.map(c => {
+    const p = mapaPagamentos[c.id] || {};
+    const temContrato = !!p.contrato;
+    return '<div class="pay-card" data-id="'+c.id+'">'+
+      '<div class="pay-head">'+
+        '<div class="pay-quem">'+escapeHtml(c.nome)+' <span class="hint">· '+escapeHtml(c.cargo||'')+'</span></div>'+
+        '<div class="pay-contrato">'+
+          '<input type="file" accept="application/pdf" class="pay-pdf-input" hidden>'+
+          '<button class="btn ghost pay-pdf-btn" type="button">📄 '+(temContrato?'Trocar contrato':'Anexar contrato (PDF)')+'</button>'+
+          (temContrato?'<button class="pay-baixar" type="button" onclick="baixarContrato('+c.id+')">baixar</button>':'')+
+          '<span class="pay-pdf-nome hint">'+(temContrato?escapeHtml(p.contrato_nome||'contrato.pdf'):'')+'</span>'+
+        '</div>'+
+      '</div>'+
+      '<div class="pay-grid">'+
+        '<div class="pay-campo"><label>Desconto (%)</label><div class="inp"><input class="pay-desc" type="number" min="0" max="100" step="0.5" value="'+(p.desconto_pct??0)+'"></div></div>'+
+        '<div class="pay-campo"><label>Salário líquido</label><div class="inp"><span class="pre">€</span><input class="pay-liq" type="number" min="0" step="1" value="'+(p.salario_liquido??0)+'"></div></div>'+
+        '<div class="pay-campo"><label>Salário bruto</label><div class="inp"><span class="pre">€</span><input class="pay-bru" type="number" min="0" step="1" value="'+(p.salario_bruto??0)+'"></div></div>'+
+        '<div class="pay-campo"><label>Horas/dia</label><div class="inp"><input class="pay-horas" type="number" min="0" step="0.5" value="'+(p.horas_dia??8)+'"></div></div>'+
+      '</div>'+
+      '<div class="pay-resumo">'+
+        '<div>Horas extras: <b class="pay-extra-h">0</b> h → <b class="pay-extra-v">€ 0</b> <span class="hint">(€ 15/h acima de 6h)</span></div>'+
+        '<div class="pay-total">Total a pagar: <b class="pay-total-v">€ 0</b></div>'+
+      '</div>'+
+      '<div style="text-align:right;margin-top:12px"><button class="btn pay-salvar" type="button">Salvar</button></div>'+
+    '</div>';
+  }).join('');
+
+  alvo.querySelectorAll('.pay-card').forEach(card => {
+    const cid = +card.getAttribute('data-id');
+    card.querySelector('.pay-liq').addEventListener('input', () => calcPay(card, 'liq'));
+    card.querySelector('.pay-bru').addEventListener('input', () => calcPay(card, 'bru'));
+    card.querySelector('.pay-desc').addEventListener('input', () => calcPay(card, 'desc'));
+    card.querySelector('.pay-horas').addEventListener('input', () => calcPay(card, 'horas'));
+    const pdf = card.querySelector('.pay-pdf-input');
+    card.querySelector('.pay-pdf-btn').addEventListener('click', () => pdf.click());
+    pdf.addEventListener('change', () => onContratoPdf(cid, pdf, card));
+    card.querySelector('.pay-salvar').addEventListener('click', () => salvarPagamento(cid, card));
+    calcPay(card, 'init');
+  });
+}
+function calcPay(card, origem){
+  const d = num(card.querySelector('.pay-desc').value) / 100;
+  const fator = 1 - d;
+  const liqEl = card.querySelector('.pay-liq'), bruEl = card.querySelector('.pay-bru');
+  let liq = num(liqEl.value), bru = num(bruEl.value);
+  if (origem === 'bru'){ liq = bru * fator; liqEl.value = liq.toFixed(2); }
+  else if (origem === 'liq' || origem === 'desc'){ bru = fator > 0 ? liq / fator : 0; bruEl.value = bru.toFixed(2); }
+  else if (!bru && liq && fator > 0){ bru = liq / fator; bruEl.value = bru.toFixed(2); }
+  const horas = num(card.querySelector('.pay-horas').value);
+  const extraH = Math.max(0, horas - 6);
+  card.querySelector('.pay-extra-h').textContent = extraH.toLocaleString('it-IT', { maximumFractionDigits: 1 });
+  card.querySelector('.pay-extra-v').textContent = eur(extraH * 15);
+  card.querySelector('.pay-total-v').textContent = eur(liq + extraH * 15);
+  atualizarTotalGeral();
+}
+function atualizarTotalGeral(){
+  let total = 0;
+  document.querySelectorAll('.pay-card').forEach(card => {
+    const liq = num(card.querySelector('.pay-liq').value);
+    const horas = num(card.querySelector('.pay-horas').value);
+    total += liq + Math.max(0, horas - 6) * 15;
+  });
+  const el = document.getElementById('pay-total-geral'); if (el) el.textContent = eur(total);
+}
+function onContratoPdf(cid, input, card){
+  const file = input.files && input.files[0]; if (!file) return;
+  if (file.size > 4 * 1024 * 1024){ toast('PDF muito grande (máx 4 MB).', false); input.value = ''; return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    contratos[cid] = { base64: e.target.result, nome: file.name };
+    card.querySelector('.pay-pdf-nome').textContent = file.name;
+    card.querySelector('.pay-pdf-btn').textContent = '📄 Trocar contrato';
+    toast('Contrato anexado (clique em Salvar para gravar)');
+  };
+  reader.readAsDataURL(file);
+}
+function baixarContrato(cid){
+  const p = mapaPagamentos[cid]; if (!p || !p.contrato) return;
+  const a = document.createElement('a'); a.href = p.contrato; a.download = p.contrato_nome || 'contrato.pdf';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+async function salvarPagamento(cid, card){
+  if (!sb){ toast('Configure o Supabase para salvar.', false); return; }
+  const reg = {
+    colaborador_id:  cid,
+    desconto_pct:    num(card.querySelector('.pay-desc').value),
+    salario_liquido: num(card.querySelector('.pay-liq').value),
+    salario_bruto:   num(card.querySelector('.pay-bru').value),
+    horas_dia:       num(card.querySelector('.pay-horas').value),
+    atualizado_em:   new Date().toISOString(),
+  };
+  if (contratos[cid]){ reg.contrato = contratos[cid].base64; reg.contrato_nome = contratos[cid].nome; }
+  const { error } = await sb.from('pagamentos').upsert(reg, { onConflict: 'colaborador_id' });
+  if (error){ console.error(error); toast('Erro ao salvar.', false); return; }
+  toast('Pagamento salvo');
+  carregarPagamentos();
 }
