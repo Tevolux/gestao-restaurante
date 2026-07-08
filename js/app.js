@@ -90,6 +90,7 @@ function animateVal(el, target, fmt){
 /* ===== navegação ===== */
 const META = {
   menu:['Menu','Todas as áreas do sistema em um só lugar'],
+  modulos:['Módulos','Operação, projeção e gestão'],
   dashboard:['Dashboard','Visão geral da operação de hoje'],
   receitas:['Receitas','Monte pratos e calcule o custo'],
   ingredientes:['Ingredientes','Cadastro e preços dos insumos'],
@@ -101,13 +102,22 @@ const META = {
   gestao:['Gestão','Tarefas e acompanhamento'],
 };
 let chartFeito = false;
+/* quais seções pertencem a cada entrada da barra lateral (para destacar o "pai") */
+const SECOES_MENU = ['dashboard','receitas','ingredientes','vendas','colaboradores','pagamentos'];
+const SECOES_MODULOS = ['operacao','projecao','gestao'];
+function marcarNav(id){
+  document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('ativa'));
+  let pai = null;
+  if (id === 'menu' || SECOES_MENU.includes(id)) pai = 'menu';
+  else if (id === 'modulos' || SECOES_MODULOS.includes(id)) pai = 'modulos';
+  if (pai){ const b = document.querySelector('.nav-item[data-pg="' + pai + '"]'); if (b) b.classList.add('ativa'); }
+}
 function navegar(id){
   document.querySelectorAll('.pg').forEach(p => p.hidden = true);
-  document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('ativa'));
   const pgEl = document.getElementById('pg-' + id);
   pgEl.hidden = false;
   pgEl.classList.remove('anim'); void pgEl.offsetWidth; pgEl.classList.add('anim');
-  document.querySelector('.nav-item[data-pg="' + id + '"]').classList.add('ativa');
+  marcarNav(id);
   document.getElementById('pg-title').textContent = META[id][0];
   document.getElementById('pg-sub').textContent = META[id][1];
   if (id === 'dashboard' && !chartFeito) desenharDashboard();
@@ -171,20 +181,30 @@ async function salvarReceita(){
   carregarReceitas();
 }
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+/* quebra o modo de preparo em passos (um por linha; se vier tudo numa linha, separa por frase)
+   e remove qualquer numeração que o usuário já tenha digitado — a lista <ol> numera do 1. */
+function stepsPreparo(txt){
+  txt = (txt || '').trim(); if (!txt) return [];
+  let linhas = txt.split(/\r?\n+/).map(s => s.trim()).filter(Boolean);
+  if (linhas.length === 1) linhas = linhas[0].split(/(?<=[.!?])\s+(?=[A-Za-zÀ-Ú0-9])/).map(s => s.trim()).filter(Boolean);
+  return linhas.map(s => s.replace(/^\s*\d+[.)\-–]\s*/, '').trim()).filter(Boolean);
+}
 
 function renderSalvas(){
   document.getElementById('rec-contador').textContent = receitasSalvas.length;
   document.getElementById('rec-salvas').innerHTML = receitasSalvas.map(r => {
-    const itensTxt = (r.itens||[]).map(x => escapeHtml(x.ing)+' ('+br(x.g,0)+' g)').join(', ');
+    const itensLista = (r.itens||[]).map(x => '<li>'+escapeHtml(x.ing)+'<span>'+br(x.g,0)+' g</span></li>').join('');
+    const itensBloco = itensLista ? '<div class="rc-ings-tit">Ingredientes</div><ul class="rc-ings">'+itensLista+'</ul>' : '';
     const foto = r.foto
       ? '<div class="rc-foto" style="background-image:url(\''+r.foto+'\')" onclick="trocarFoto('+r.id+')" title="Trocar foto"></div>'
       : '<div class="rc-foto rc-sem" onclick="trocarFoto('+r.id+')">+ adicionar foto</div>';
-    const prep = r.modo_preparo ? '<div class="rc-prep"><b>Preparo:</b> '+escapeHtml(r.modo_preparo)+'</div>' : '';
+    const passos = stepsPreparo(r.modo_preparo);
+    const prep = passos.length ? '<div class="rc-ings-tit">Modo de preparo</div><ol class="rc-passos">'+passos.map(s => '<li>'+escapeHtml(s)+'</li>').join('')+'</ol>' : '';
     return '<div class="rc">'+foto+
       '<div class="rc-corpo">'+
         '<div class="rc-top"><b>'+escapeHtml(r.nome)+'</b><span class="mono rc-custo">'+eur(r.custo_por_prato)+'</span></div>'+
         '<div class="hint">rende '+r.rende+' prato(s) · '+eur(r.custo_por_prato)+' por prato</div>'+
-        '<div class="hint" style="margin-top:6px"><b>Ingredientes:</b> '+itensTxt+'</div>'+
+        itensBloco+
         prep+
         '<button class="btn ghost" style="margin-top:10px;padding:5px 12px" onclick="removerReceita('+r.id+')">remover</button>'+
       '</div></div>';
@@ -477,6 +497,7 @@ const CMDS = [
   { label:'Pagamentos',             hint:'Ir para', run:()=>navegar('pagamentos') },
   { label:'Analisar vendas por país', hint:'Ação',  run:()=>navegar('vendas') },
   { label:'Menu',                     hint:'Ir para', run:()=>navegar('menu') },
+  { label:'Módulos',                  hint:'Ir para', run:()=>navegar('modulos') },
   { label:'Configurações da conta',   hint:'Conta',   run:()=>abrirSettings() },
   { label:'Mudar tema (claro/escuro)',hint:'Ação',    run:()=>aplicarTema(temaEscuro() ? 'light' : 'dark') },
   { label:'Sair da conta',            hint:'Ação',    run:()=>sair() },
@@ -703,6 +724,7 @@ if (inpTroca) inpTroca.addEventListener('change', function(){
 let listaColab = [];
 let colabFoto = null;   // foto do colaborador (base64)
 let colabDocs = [];     // documentos/comprovantes (base64[])
+let colabEditId = null; // id do colaborador sendo editado (null = novo cadastro)
 
 async function carregarColaboradores(){
   if (!sb) return;
@@ -727,18 +749,41 @@ function renderColaboradores(){
         '<div class="colab-linha">✉️ '+escapeHtml(c.email||'—')+'</div>'+
         '<div class="colab-linha">📍 '+escapeHtml(c.endereco||'—')+'</div>'+
         (ndocs ? '<div class="colab-linha hint">📎 '+ndocs+' documento(s) anexado(s)</div>' : '')+
-        '<button class="btn ghost" style="margin-top:10px;padding:5px 12px" onclick="removerColaborador('+c.id+')">remover</button>'+
+        '<div style="display:flex;gap:8px;margin-top:10px">'+
+          '<button class="btn ghost" style="padding:5px 12px" onclick="editarColaborador('+c.id+')">editar</button>'+
+          '<button class="btn ghost" style="padding:5px 12px" onclick="removerColaborador('+c.id+')">remover</button>'+
+        '</div>'+
       '</div></div>';
   }).join('') || '<p class="hint">Nenhum colaborador ainda. Clique em <b>Adicionar colaborador</b>.</p>';
 }
 function abrirCadastroColab(){
   ['colab-nome','colab-cargo','colab-doc','colab-endereco','colab-tel','colab-email'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-  colabFoto = null; colabDocs = [];
+  colabFoto = null; colabDocs = []; colabEditId = null;
+  const t = document.getElementById('colab-modal-titulo'); if (t) t.textContent = 'Adicionar colaborador';
+  const btn = document.getElementById('colab-modal-btn'); if (btn) btn.textContent = 'Salvar colaborador';
   const prev = document.getElementById('colab-foto-preview'); if (prev){ prev.style.backgroundImage = ''; prev.classList.remove('tem'); }
   renderDocsPreview();
   document.getElementById('modal-colab').classList.add('aberto');
 }
 function fecharCadastroColab(){ document.getElementById('modal-colab').classList.remove('aberto'); }
+function editarColaborador(id){
+  const c = listaColab.find(x => x.id === id); if (!c) return;
+  colabEditId = id;
+  const set = (elId, v) => { const el = document.getElementById(elId); if (el) el.value = v || ''; };
+  set('colab-nome', c.nome); set('colab-cargo', c.cargo); set('colab-doc', c.documento);
+  set('colab-endereco', c.endereco); set('colab-tel', c.telefone); set('colab-email', c.email);
+  colabFoto = c.foto || null;
+  colabDocs = Array.isArray(c.documentos) ? c.documentos.slice() : [];
+  const prev = document.getElementById('colab-foto-preview');
+  if (prev){
+    if (colabFoto){ prev.style.backgroundImage = "url('" + colabFoto + "')"; prev.classList.add('tem'); }
+    else { prev.style.backgroundImage = ''; prev.classList.remove('tem'); }
+  }
+  renderDocsPreview();
+  const t = document.getElementById('colab-modal-titulo'); if (t) t.textContent = 'Editar colaborador';
+  const btn = document.getElementById('colab-modal-btn'); if (btn) btn.textContent = 'Salvar alterações';
+  document.getElementById('modal-colab').classList.add('aberto');
+}
 function onColabFoto(input){
   const file = input.files && input.files[0]; if (!file) return;
   redimensionarImagem(file, dataUrl => {
@@ -769,9 +814,11 @@ async function salvarColaborador(){
     foto:      colabFoto,
     documentos: colabDocs,
   };
-  const { error } = await sb.from('colaboradores').insert(reg);
-  if (error){ console.error(error); toast('Erro ao salvar.', false); return; }
-  toast('Colaborador cadastrado');
+  const resp = colabEditId
+    ? await sb.from('colaboradores').update(reg).eq('id', colabEditId)
+    : await sb.from('colaboradores').insert(reg);
+  if (resp.error){ console.error(resp.error); toast('Erro ao salvar.', false); return; }
+  toast(colabEditId ? 'Colaborador atualizado' : 'Colaborador cadastrado');
   fecharCadastroColab();
   carregarColaboradores();
 }
@@ -990,3 +1037,9 @@ async function alterarSenha(){
   document.getElementById('set-senha').value = ''; document.getElementById('set-senha2').value = '';
   toast('Senha alterada');
 }
+
+/* ================= ESTADO INICIAL DA NAVEGAÇÃO ================= */
+/* no celular abre direto no hub Menu (navega pelos ícones); no desktop
+   fica no Dashboard, mas já destaca "Menu" na barra lateral (seção pai). */
+if (window.innerWidth <= 820) navegar('menu');
+else marcarNav('dashboard');

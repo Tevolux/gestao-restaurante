@@ -47,38 +47,12 @@
     </div>
 
     <nav class="nav" aria-label="Menu principal">
-      <div class="nav-label">Principal</div>
-      <button class="nav-item" data-pg="menu" onclick="navegar('menu')">
+      <button class="nav-item ativa" data-pg="menu" onclick="navegar('menu')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="5" r="1.4"/><circle cx="12" cy="5" r="1.4"/><circle cx="19" cy="5" r="1.4"/><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/><circle cx="5" cy="19" r="1.4"/><circle cx="12" cy="19" r="1.4"/><circle cx="19" cy="19" r="1.4"/></svg>
         Menu</button>
-      <button class="nav-item ativa" data-pg="dashboard" onclick="navegar('dashboard')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-        Dashboard</button>
-      <button class="nav-item" data-pg="receitas" onclick="navegar('receitas')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l3 3v15H5z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>
-        Receitas</button>
-      <button class="nav-item" data-pg="ingredientes" onclick="navegar('ingredientes')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>
-        Ingredientes</button>
-      <button class="nav-item" data-pg="vendas" onclick="navegar('vendas')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
-        Vendas</button>
-      <button class="nav-item" data-pg="colaboradores" onclick="navegar('colaboradores')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13A4 4 0 0 1 16 11"/></svg>
-        Colaboradores</button>
-      <button class="nav-item" data-pg="pagamentos" onclick="navegar('pagamentos')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>
-        Pagamentos</button>
-      <div class="nav-label">Módulos</div>
-      <button class="nav-item" data-pg="operacao" onclick="navegar('operacao')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14a6 6 0 0 0 6-6H6a6 6 0 0 0 6 6Z"/><path d="M12 14v4M8 21h8M18 8h2a2 2 0 0 1 0 4h-1"/></svg>
-        Operação<span class="soon">breve</span></button>
-      <button class="nav-item" data-pg="projecao" onclick="navegar('projecao')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>
-        Projeção<span class="soon">breve</span></button>
-      <button class="nav-item" data-pg="gestao" onclick="navegar('gestao')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg>
-        Gestão<span class="soon">breve</span></button>
+      <button class="nav-item" data-pg="modulos" onclick="navegar('modulos')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        Módulos</button>
     </nav>
 
     <div class="side-foot">
@@ -93,7 +67,12 @@
   <!-- ===================== MAIN ===================== -->
   <main class="main">
     <header class="topbar">
-      <div class="tt"><h1 id="pg-title">Dashboard</h1><p id="pg-sub">Visão geral da operação de hoje</p></div>
+      <div class="tt">
+        <button class="topbar-home" onclick="navegar('menu')" aria-label="Ir para o menu" title="Menu">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="5" r="1.4"/><circle cx="12" cy="5" r="1.4"/><circle cx="19" cy="5" r="1.4"/><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/><circle cx="5" cy="19" r="1.4"/><circle cx="12" cy="19" r="1.4"/><circle cx="19" cy="19" r="1.4"/></svg>
+        </button>
+        <div class="tt-txt"><h1 id="pg-title">Dashboard</h1><p id="pg-sub">Visão geral da operação de hoje</p></div>
+      </div>
       <div class="meta">
         <button class="topsearch" onclick="openCmd()" aria-label="Buscar comandos">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
@@ -138,6 +117,21 @@
           <button class="menu-card" onclick="navegar('pagamentos')">
             <span class="mc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg></span>
             <span class="mc-tt">Pagamentos</span><span class="mc-sub">Folha da equipe</span></button>
+          <button class="menu-card" onclick="navegar('modulos')">
+            <span class="mc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></span>
+            <span class="mc-tt">Módulos</span><span class="mc-sub">Operação, projeção e gestão</span></button>
+          <button class="menu-card" onclick="abrirSettings()">
+            <span class="mc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+            <span class="mc-tt">Configurações</span><span class="mc-sub">Sua conta e tema</span></button>
+          <button class="menu-card menu-sair" onclick="sair()">
+            <span class="mc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg></span>
+            <span class="mc-tt">Sair</span><span class="mc-sub">Encerrar a sessão</span></button>
+        </div>
+      </section>
+
+      <!-- ---------- MÓDULOS (hub) ---------- -->
+      <section id="pg-modulos" class="pg" hidden>
+        <div class="menu-hub">
           <button class="menu-card" onclick="navegar('operacao')">
             <span class="mc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14a6 6 0 0 0 6-6H6a6 6 0 0 0 6 6Z"/><path d="M12 14v4M8 21h8"/></svg></span>
             <span class="mc-tt">Operação</span><span class="mc-sub">Produção e margem · breve</span></button>
@@ -147,12 +141,6 @@
           <button class="menu-card" onclick="navegar('gestao')">
             <span class="mc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg></span>
             <span class="mc-tt">Gestão</span><span class="mc-sub">Tarefas · breve</span></button>
-          <button class="menu-card" onclick="abrirSettings()">
-            <span class="mc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
-            <span class="mc-tt">Configurações</span><span class="mc-sub">Sua conta e tema</span></button>
-          <button class="menu-card menu-sair" onclick="sair()">
-            <span class="mc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg></span>
-            <span class="mc-tt">Sair</span><span class="mc-sub">Encerrar a sessão</span></button>
         </div>
       </section>
 
@@ -389,7 +377,7 @@
 
       <div class="rf-bloco" style="margin-bottom:0">
         <label class="rf-label" for="rec-preparo">4 · Modo de preparo</label>
-        <textarea id="rec-preparo" class="rf-textarea" placeholder="Descreva o passo a passo do preparo…"></textarea>
+        <textarea id="rec-preparo" class="rf-textarea" placeholder="Um passo por linha — a numeração (1, 2, 3…) é automática.&#10;Ex.:&#10;Refogue a cebola no azeite&#10;Adicione o tomate pelado&#10;Cozinhe por 20 min"></textarea>
       </div>
 
     </div>
@@ -404,7 +392,7 @@
 <div class="modal" id="modal-colab">
   <div class="modal-card">
     <div class="modal-head">
-      <h2>Adicionar colaborador</h2>
+      <h2 id="colab-modal-titulo">Adicionar colaborador</h2>
       <button class="modal-x" onclick="fecharCadastroColab()" aria-label="Fechar">&times;</button>
     </div>
     <div class="modal-body">
@@ -436,7 +424,7 @@
     </div>
     <div class="modal-foot">
       <button class="btn ghost" onclick="fecharCadastroColab()">Cancelar</button>
-      <button class="btn" onclick="salvarColaborador()">Salvar colaborador</button>
+      <button class="btn" id="colab-modal-btn" onclick="salvarColaborador()">Salvar colaborador</button>
     </div>
   </div>
 </div>
