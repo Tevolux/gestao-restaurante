@@ -476,6 +476,11 @@ tr.ing-baixo td{ background:var(--neg-soft) !important; }
 .kb-rm{ background:var(--neg-soft); color:var(--neg); }
 .kb-vazio{ font-size:12px; color:var(--faint); text-align:center; padding:10px; border:1px dashed var(--border); border-radius:9px; }
 
+/* ================= OPERAÇÃO — lista de compras agregada ================= */
+.op-item{ display:flex; justify-content:space-between; align-items:baseline; padding:9px 0; border-bottom:1px solid var(--border); font-size:14px; }
+.op-item:last-child{ border-bottom:none; }
+.op-item .mono{ font-weight:500; }
+
 /* ============================================================
    ORIENTAÇÃO — CELULAR DEITADO (paisagem, tela baixa)
    Em pé (retrato) já é tratado pelos breakpoints de largura acima.

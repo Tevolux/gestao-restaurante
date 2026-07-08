@@ -96,6 +96,7 @@ const META = {
   dashboard:['Dashboard','Visão geral da operação de hoje'],
   receitas:['Receitas','Monte pratos e calcule o custo'],
   ingredientes:['Ingredientes','Cadastro e preços dos insumos'],
+  compras:['Compras','Reposição de estoque'],
   vendas:['Vendas','Acompanhe o que mais e menos vende'],
   colaboradores:['Colaboradores','A equipe do restaurante'],
   pagamentos:['Pagamentos','Folha da equipe: salários e horas'],
@@ -105,7 +106,7 @@ const META = {
 };
 let chartFeito = false;
 /* quais seções pertencem a cada entrada da barra lateral (para destacar o "pai") */
-const SECOES_MENU = ['dashboard','receitas','ingredientes','vendas','colaboradores','pagamentos'];
+const SECOES_MENU = ['dashboard','receitas','ingredientes','compras','vendas','colaboradores','pagamentos'];
 const SECOES_MODULOS = ['operacao','projecao','gestao'];
 function marcarNav(id){
   document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('ativa'));
@@ -126,6 +127,9 @@ function navegar(id){
   if (id === 'vendas') renderVendas();
   if (id === 'pagamentos') carregarPagamentos();
   if (id === 'gestao') carregarTarefas();
+  if (id === 'compras') renderCompras();
+  if (id === 'operacao') renderOperacao();
+  if (id === 'projecao') calcularProjecao();
   window.scrollTo(0,0);
 }
 
@@ -525,6 +529,9 @@ const CMDS = [
   { label:'Nova receita',           hint:'Ação',    run:()=>navegar('receitas') },
   { label:'Ingredientes',           hint:'Ir para', run:()=>navegar('ingredientes') },
   { label:'Adicionar ingrediente',  hint:'Ação',    run:()=>navegar('ingredientes') },
+  { label:'Compras',                hint:'Ir para', run:()=>navegar('compras') },
+  { label:'Operação',               hint:'Ir para', run:()=>navegar('operacao') },
+  { label:'Projeção',               hint:'Ir para', run:()=>navegar('projecao') },
   { label:'Colaboradores',          hint:'Ir para', run:()=>navegar('colaboradores') },
   { label:'Adicionar colaborador',  hint:'Ação',    run:()=>{ navegar('colaboradores'); abrirCadastroColab(); } },
   { label:'Pagamentos',             hint:'Ir para', run:()=>navegar('pagamentos') },
@@ -669,7 +676,7 @@ async function carregarPrecos(){
       if (r.estoque_atual !== undefined) ESTOQUE[r.nome] = { atual: Number(r.estoque_atual)||0, minimo: Number(r.estoque_minimo)||0 };
     }); }
   } catch (e){ console.error(e); }
-  atualizarListaIngredientes(); montarDatalist(); recalcularReceita(); renderIngredientes(); renderEstoqueBaixo(); atualizarNotificacoes();
+  atualizarListaIngredientes(); montarDatalist(); recalcularReceita(); renderIngredientes(); renderEstoqueBaixo(); atualizarNotificacoes(); renderCompras();
 }
 
 /* ---- gerenciar ingredientes (aba Ingredientes) ---- */
@@ -1081,6 +1088,123 @@ async function removerTarefa(id){
 }
 (function(){ const el = document.getElementById('tarefa-nova'); if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); adicionarTarefa(); } }); })();
 
+/* ================= COMPRAS (reposição de estoque) ================= */
+function renderCompras(){
+  const alvo = document.getElementById('compras-lista'); if (!alvo) return;
+  const itens = listaIngredientes.map(x => {
+    const falta = (x.estoque_minimo||0) - (x.estoque_atual||0);
+    return { nome:x.nome, preco:x.preco_kg, atual:x.estoque_atual, minimo:x.estoque_minimo, comprar: falta > 0 ? falta : 0 };
+  }).filter(i => i.comprar > 0).sort((a,b) => a.nome.localeCompare(b.nome, 'pt'));
+  const cont = document.getElementById('compras-contador'); if (cont) cont.textContent = itens.length;
+  if (!itens.length){
+    alvo.innerHTML = '<p class="hint">✓ Estoque em dia — nenhum item abaixo do mínimo.</p>';
+    const t = document.getElementById('compras-total'); if (t) t.textContent = eur(0);
+    return;
+  }
+  alvo.innerHTML = '<div class="tbl-scroll"><table><thead><tr><th>Ingrediente</th><th class="num">Estoque</th><th class="num">Mínimo</th><th class="num" style="width:150px">Comprar (kg)</th><th class="num" style="width:110px">Custo</th></tr></thead><tbody>' +
+    itens.map(i => '<tr data-nome="'+escapeHtml(i.nome)+'" data-preco="'+i.preco+'"><td>'+escapeHtml(i.nome)+'</td>'+
+      '<td class="num">'+numKg(i.atual)+' kg</td><td class="num">'+numKg(i.minimo)+' kg</td>'+
+      '<td class="num"><div class="inp inp-mini"><input class="cp-qtd" type="number" min="0" step="0.5" value="'+i.comprar+'"></div></td>'+
+      '<td class="num cp-custo">'+eur(i.comprar*i.preco)+'</td></tr>').join('') +
+    '</tbody></table></div>';
+  alvo.querySelectorAll('tr[data-nome]').forEach(tr => {
+    const preco = num(tr.getAttribute('data-preco'));
+    const q = tr.querySelector('.cp-qtd');
+    q.addEventListener('input', () => { tr.querySelector('.cp-custo').textContent = eur(num(q.value)*preco); totalCompras(); });
+  });
+  totalCompras();
+}
+function totalCompras(){
+  let t = 0;
+  document.querySelectorAll('#compras-lista tr[data-nome]').forEach(tr => { t += num(tr.querySelector('.cp-qtd').value) * num(tr.getAttribute('data-preco')); });
+  const el = document.getElementById('compras-total'); if (el) el.textContent = eur(t);
+}
+
+/* ================= OPERAÇÃO (produção do dia) ================= */
+function renderOperacao(){
+  const alvo = document.getElementById('op-receitas'); if (!alvo) return;
+  if (!receitasSalvas.length){ alvo.innerHTML = '<tr><td colspan="3" class="hint">Cadastre receitas na aba Receitas primeiro.</td></tr>'; calcularOperacao(); return; }
+  alvo.innerHTML = receitasSalvas.map(r =>
+    '<tr data-id="'+r.id+'"><td>'+escapeHtml(r.nome)+'</td>'+
+    '<td><div class="inp"><input class="op-pratos" type="number" min="0" step="1" value="0"></div></td>'+
+    '<td class="num op-custo">€ 0,00</td></tr>').join('');
+  alvo.querySelectorAll('.op-pratos').forEach(inp => inp.addEventListener('input', calcularOperacao));
+  calcularOperacao();
+}
+function calcularOperacao(){
+  const tk = document.getElementById('op-ticket'); if (!tk) return;
+  const ticket = num(tk.value);
+  const folga = 1 + num(document.getElementById('op-folga').value) / 100;
+  let custoTotal = 0, pratosTotal = 0; const compras = {};
+  document.querySelectorAll('#op-receitas tr[data-id]').forEach(tr => {
+    const id = +tr.getAttribute('data-id');
+    const r = receitasSalvas.find(x => x.id === id); if (!r) return;
+    const pratos = num(tr.querySelector('.op-pratos').value);
+    const custo = (r.custo_por_prato || 0) * pratos;
+    tr.querySelector('.op-custo').textContent = eur(custo);
+    custoTotal += custo; pratosTotal += pratos;
+    const fator = r.rende > 0 ? pratos / r.rende : 0;
+    (r.itens || []).forEach(it => { compras[it.ing] = (compras[it.ing] || 0) + it.g * fator; });
+  });
+  const receita = pratosTotal * ticket;
+  const lucro = receita - custoTotal;
+  const margem = receita > 0 ? lucro / receita * 100 : 0;
+  document.getElementById('op-receita').textContent = eur(receita);
+  document.getElementById('op-custo-total').textContent = eur(custoTotal);
+  document.getElementById('op-lucro').textContent = eur(lucro);
+  document.getElementById('op-margem').textContent = br(margem, 1) + '%';
+  const nomes = Object.keys(compras).filter(n => compras[n] > 0).sort((a,b) => a.localeCompare(b, 'pt'));
+  document.getElementById('op-compras').innerHTML = nomes.map(n => {
+    const g = compras[n] * folga;   /* g = gramas somadas das receitas */
+    const mostra = g >= 1000 ? br(g/1000, 2) + ' kg' : br(g, 0) + ' g';
+    return '<div class="op-item"><span>'+escapeHtml(n)+'</span><span class="mono">'+mostra+'</span></div>';
+  }).join('') || '<p class="hint">Informe os pratos para ver a lista de compras.</p>';
+}
+['op-ticket','op-folga'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('input', calcularOperacao); });
+
+/* ================= PROJEÇÃO (4 anos) ================= */
+let projChart;
+function calcularProjecao(){
+  const base = num(document.getElementById('pj-base').value);
+  const cresc = num(document.getElementById('pj-cresc').value) / 100;
+  const inten = num(document.getElementById('pj-inten').value) / 100;
+  const margem = num(document.getElementById('pj-margem').value) / 100;
+  const receitas = [], lucros = [], labels = [];
+  for (let m = 0; m < 48; m++){
+    const cf = Math.pow(1 + cresc, m/12);
+    const saz = 1 + inten * SAZ[m % 12];
+    const r = base * cf * saz;
+    receitas.push(r); lucros.push(r * margem);
+    labels.push(MESES[m % 12] + '/' + (Math.floor(m/12) + 1));
+  }
+  const totalF = receitas.reduce((a,b)=>a+b, 0), totalL = lucros.reduce((a,b)=>a+b, 0);
+  const ano4 = receitas.slice(36,48).reduce((a,b)=>a+b, 0);
+  document.getElementById('pj-k-fat').textContent = compact(totalF);
+  document.getElementById('pj-k-lucro').textContent = compact(totalL);
+  document.getElementById('pj-k-ano4').textContent = compact(ano4);
+  document.getElementById('pj-k-pico').textContent = MESES[SAZ.indexOf(Math.max(...SAZ))];
+  if (!projChart){
+    projChart = new Chart(document.getElementById('pj-chart'), {
+      type:'line',
+      data:{ labels, datasets:[
+        { label:'Receita', data:receitas, borderColor:'#2E6B52', backgroundColor:'rgba(46,107,82,.10)', fill:true, tension:.35, borderWidth:2.5, pointRadius:0, pointHoverRadius:5 },
+        { label:'Lucro', data:lucros, borderColor:'#D98A2B', backgroundColor:'rgba(217,138,43,.10)', fill:true, tension:.35, borderWidth:2.5, pointRadius:0, pointHoverRadius:5 },
+      ]},
+      options:{ responsive:true, maintainAspectRatio:false, interaction:{ mode:'index', intersect:false },
+        plugins:{ legend:{ labels:{ color:cRotulo(), font:{family:'Plus Jakarta Sans', size:13}, usePointStyle:true, pointStyleWidth:10 } },
+          tooltip:{ callbacks:{ label:(c)=> c.dataset.label + ': ' + euros(c.parsed.y) } } },
+        scales:{ x:{ grid:{display:false}, ticks:{ color:cEixo(), font:{family:'Plus Jakarta Sans', size:11}, autoSkip:false, callback:(v,i)=> (i%12===0)?('Ano '+(i/12+1)):'' } },
+          y:{ grid:{color:cGrade()}, ticks:{ color:cEixo(), font:{family:'Plus Jakarta Sans', size:11}, callback:(v)=> compact(v) }, beginAtZero:true } } },
+    });
+  } else {
+    projChart.data.labels = labels;
+    projChart.data.datasets[0].data = receitas;
+    projChart.data.datasets[1].data = lucros;
+    projChart.update();
+  }
+}
+['pj-base','pj-cresc','pj-inten','pj-margem'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('input', calcularProjecao); });
+
 /* ================= TEMA (claro / escuro) ================= */
 function marcarTema(t){
   const c = document.getElementById('tema-claro'), e = document.getElementById('tema-escuro');
@@ -1100,6 +1224,7 @@ function redesenharGraficos(){
     if (barChart){ barChart.destroy(); barChart = null; }
     renderVendas();
   }
+  if (projChart){ projChart.destroy(); projChart = null; const pg = document.getElementById('pg-projecao'); if (pg && !pg.hidden) calcularProjecao(); }
 }
 /* aplica o tema salvo já na carga (o <head> também faz; aqui sincroniza o botão) */
 (function(){ let t = 'light'; try { t = localStorage.getItem('tema') || 'light'; } catch (e) {} document.documentElement.dataset.theme = t; marcarTema(t); })();
