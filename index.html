@@ -180,10 +180,12 @@
           <h2>Ingredientes cadastrados <span class="tag" id="ing-contador">0</span></h2>
           <p class="sub">Edite o preço direto na lista ou remova. Tudo salva no banco.</p>
           <div class="inp" style="max-width:340px;margin-bottom:16px"><input id="ing-busca" placeholder="Buscar ingrediente…"></div>
-          <table>
-            <thead><tr><th>Ingrediente</th><th class="num" style="width:150px">Preço/kg</th><th style="width:44px"></th></tr></thead>
-            <tbody id="ing-lista"></tbody>
-          </table>
+          <div class="tbl-scroll">
+            <table>
+              <thead><tr><th>Ingrediente</th><th class="num" style="width:150px">Preço/kg</th><th style="width:44px"></th></tr></thead>
+              <tbody id="ing-lista"></tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -213,7 +215,7 @@
         <div class="card">
           <h2>Prato mais vendido por mês <span class="tag">sazonalidade</span></h2>
           <p class="sub">O campeão muda com a estação: pratos fortes no inverno romano, leves no verão.</p>
-          <div id="tab-campeoes"></div>
+          <div id="tab-campeoes" class="tbl-scroll"></div>
         </div>
 
         <div class="card">
@@ -225,10 +227,12 @@
         <div class="card">
           <h2>Meses com maior faturamento</h2>
           <p class="sub">Ranking dos meses no filtro.</p>
-          <table>
-            <thead><tr><th style="width:44px" class="num">#</th><th>Mês</th><th class="num">Clientes</th><th class="num">Faturamento</th><th style="width:26%">Movimento</th></tr></thead>
-            <tbody id="tab-meses"></tbody>
-          </table>
+          <div class="tbl-scroll">
+            <table>
+              <thead><tr><th style="width:44px" class="num">#</th><th>Mês</th><th class="num">Clientes</th><th class="num">Faturamento</th><th style="width:26%">Movimento</th></tr></thead>
+              <tbody id="tab-meses"></tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -326,10 +330,12 @@
         <div class="fields" style="margin-bottom:12px">
           <div class="field" style="max-width:170px"><label for="rec-rende">Rende (pratos)</label><div class="inp"><input id="rec-rende" type="number" min="1" step="1" value="1"></div></div>
         </div>
-        <table>
-          <thead><tr><th>Ingrediente</th><th style="width:100px">Qtd (g)</th><th style="width:96px" class="num">Preço/kg</th><th style="width:96px" class="num">Custo</th><th style="width:40px"></th></tr></thead>
-          <tbody id="rec-linhas"></tbody>
-        </table>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr><th>Ingrediente</th><th style="width:100px">Qtd (g)</th><th style="width:96px" class="num">Preço/kg</th><th style="width:96px" class="num">Custo</th><th style="width:40px"></th></tr></thead>
+            <tbody id="rec-linhas"></tbody>
+          </table>
+        </div>
         <div style="margin-top:12px"><button class="btn ghost" type="button" onclick="addLinha()">+ adicionar ingrediente</button></div>
         <div class="callout" style="margin-top:14px">
           <div><div class="lbl">Custo da receita</div><div class="v" id="rec-custo-total">€ 0,00</div></div>
