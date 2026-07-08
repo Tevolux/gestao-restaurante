@@ -81,15 +81,13 @@
         <span class="date" id="hoje-data">—</span>
         <button class="icon-btn" aria-label="Notificações" onclick="toggleNotif(event)">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg>
-          <span class="badge">3</span>
+          <span class="badge" id="notif-badge" style="display:none">0</span>
         </button>
         <span class="pill"><span class="dot"></span>Online</span>
         <button class="topbar-av" id="topbar-av" onclick="abrirSettings()" title="Sua conta" aria-label="Conta e configurações">U</button>
         <div class="notif" id="notif">
           <h4>Notificações</h4>
-          <button class="n"><span class="nd" style="background:#B8472C"></span><div><div class="nt">Estoque de guanciale baixo</div><div class="ns">Restam ~3 kg · repor hoje</div></div></button>
-          <button class="n"><span class="nd" style="background:#2E6B52"></span><div><div class="nt">Julho bateu recorde</div><div class="ns">Faturamento +18% vs junho</div></div></button>
-          <button class="n"><span class="nd" style="background:#D98A2B"></span><div><div class="nt">Margem do tartufo baixa</div><div class="ns">Revisar o preço de venda</div></div></button>
+          <div id="notif-lista"></div>
         </div>
       </div>
     </header>
@@ -140,7 +138,7 @@
             <span class="mc-tt">Projeção</span><span class="mc-sub">Crescimento · breve</span></button>
           <button class="menu-card" onclick="navegar('gestao')">
             <span class="mc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg></span>
-            <span class="mc-tt">Gestão</span><span class="mc-sub">Tarefas · breve</span></button>
+            <span class="mc-tt">Gestão</span><span class="mc-sub">Quadro de tarefas</span></button>
         </div>
       </section>
 
@@ -198,6 +196,11 @@
 
       <!-- ---------- INGREDIENTES ---------- -->
       <section id="pg-ingredientes" class="pg" hidden>
+        <div class="card" id="card-estoque-baixo" style="display:none;border-color:var(--neg)">
+          <h2 style="color:var(--neg)">⚠ Estoque baixo</h2>
+          <p class="sub">Itens abaixo do mínimo — repor.</p>
+          <div id="estoque-baixo-lista" class="eb-lista"></div>
+        </div>
         <div class="card">
           <h2>Adicionar ingrediente</h2>
           <p class="sub">Cadastre um insumo e o preço por kg — ele já fica disponível nas receitas.</p>
@@ -214,7 +217,7 @@
           <div class="inp" style="max-width:340px;margin-bottom:16px"><input id="ing-busca" placeholder="Buscar ingrediente…"></div>
           <div class="tbl-scroll">
             <table>
-              <thead><tr><th>Ingrediente</th><th class="num" style="width:150px">Preço/kg</th><th style="width:44px"></th></tr></thead>
+              <thead><tr><th>Ingrediente</th><th class="num" style="width:120px">Preço/kg</th><th class="num" style="width:105px">Estoque</th><th class="num" style="width:105px">Mínimo</th><th style="width:44px"></th></tr></thead>
               <tbody id="ing-lista"></tbody>
             </table>
           </div>
@@ -307,9 +310,21 @@
       <section id="pg-projecao" class="pg" hidden><div class="card"><div class="empty">
         <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg></div>
         <h2>Projeção</h2><p>Os gráficos de 4 anos com sazonalidade e crescimento entram aqui — próxima fase.</p></div></div></section>
-      <section id="pg-gestao" class="pg" hidden><div class="card"><div class="empty">
-        <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg></div>
-        <h2>Gestão</h2><p>O quadro de tarefas estilo Jira, editável, entra aqui — próxima fase.</p></div></div></section>
+      <section id="pg-gestao" class="pg" hidden>
+        <div class="card">
+          <h2 style="margin:0">Quadro de tarefas</h2>
+          <p class="sub" style="margin:4px 0 0">Organize o que fazer, o que está em andamento e o que já saiu.</p>
+          <div class="fields" style="margin:14px 0 0">
+            <div class="field"><div class="inp"><input id="tarefa-nova" placeholder="Nova tarefa…"></div></div>
+            <div style="padding-bottom:2px"><button class="btn" onclick="adicionarTarefa()">+ Adicionar</button></div>
+          </div>
+        </div>
+        <div class="kanban">
+          <div class="kb-col"><div class="kb-tit">A fazer <span class="tag" id="kb-c-afazer">0</span></div><div class="kb-lista" id="kb-afazer"></div></div>
+          <div class="kb-col"><div class="kb-tit">Fazendo <span class="tag" id="kb-c-fazendo">0</span></div><div class="kb-lista" id="kb-fazendo"></div></div>
+          <div class="kb-col"><div class="kb-tit">Feito <span class="tag" id="kb-c-feito">0</span></div><div class="kb-lista" id="kb-feito"></div></div>
+        </div>
+      </section>
 
     </div>
   </main>

@@ -125,6 +125,7 @@ function navegar(id){
   if (id === 'dashboard' && !chartFeito) desenharDashboard();
   if (id === 'vendas') renderVendas();
   if (id === 'pagamentos') carregarPagamentos();
+  if (id === 'gestao') carregarTarefas();
   window.scrollTo(0,0);
 }
 
@@ -653,37 +654,52 @@ async function entrarApp(session){
   await carregarReceitas();
   await carregarColaboradores();
   carregarPagamentos();
+  carregarTarefas();
 }
 function sairApp(){ usuarioAtual = null; document.getElementById('login').style.display = 'flex'; }
 
+const ESTOQUE = {};   // nome -> { atual, minimo } (valores em kg)
 async function carregarPrecos(){
   if (!sb) return;
   try {
-    const { data, error } = await sb.from('ingredientes').select('nome, preco_kg');
-    if (!error && data){ data.forEach(r => { PRECOS[r.nome] = Number(r.preco_kg); }); }
+    let { data, error } = await sb.from('ingredientes').select('nome, preco_kg, estoque_atual, estoque_minimo');
+    if (error){ ({ data, error } = await sb.from('ingredientes').select('nome, preco_kg')); }  // fallback: banco sem colunas de estoque
+    if (!error && data){ data.forEach(r => {
+      PRECOS[r.nome] = Number(r.preco_kg);
+      if (r.estoque_atual !== undefined) ESTOQUE[r.nome] = { atual: Number(r.estoque_atual)||0, minimo: Number(r.estoque_minimo)||0 };
+    }); }
   } catch (e){ console.error(e); }
-  atualizarListaIngredientes(); montarDatalist(); recalcularReceita(); renderIngredientes();
+  atualizarListaIngredientes(); montarDatalist(); recalcularReceita(); renderIngredientes(); renderEstoqueBaixo(); atualizarNotificacoes();
 }
 
 /* ---- gerenciar ingredientes (aba Ingredientes) ---- */
 let listaIngredientes = [];
 function atualizarListaIngredientes(){
-  listaIngredientes = Object.keys(PRECOS).map(n => ({ nome:n, preco_kg:PRECOS[n] }))
-    .sort((a,b) => a.nome.localeCompare(b.nome, 'pt'));
+  listaIngredientes = Object.keys(PRECOS).map(n => ({
+    nome:n, preco_kg:PRECOS[n],
+    estoque_atual: (ESTOQUE[n] ? ESTOQUE[n].atual : 0),
+    estoque_minimo: (ESTOQUE[n] ? ESTOQUE[n].minimo : 0)
+  })).sort((a,b) => a.nome.localeCompare(b.nome, 'pt'));
 }
 function renderIngredientes(){
   const cont = document.getElementById('ing-contador'); if (cont) cont.textContent = listaIngredientes.length;
   const alvo = document.getElementById('ing-lista'); if (!alvo) return;
   const busca = (document.getElementById('ing-busca')?.value || '').trim().toLowerCase();
   const filtrados = listaIngredientes.filter(x => x.nome.toLowerCase().includes(busca));
-  alvo.innerHTML = filtrados.map(x =>
-    '<tr data-nome="'+escapeHtml(x.nome)+'"><td>'+escapeHtml(x.nome)+'</td>'+
-    '<td class="num"><div class="inp inp-preco"><span class="pre">€</span><input class="ing-preco-inp" type="number" min="0" step="0.1" value="'+x.preco_kg.toFixed(2)+'"></div></td>'+
-    '<td style="width:44px"><button class="rm ing-rm" title="remover" aria-label="remover">&times;</button></td></tr>'
-  ).join('') || '<tr><td colspan="3" class="hint">Nenhum ingrediente encontrado.</td></tr>';
+  alvo.innerHTML = filtrados.map(x => {
+    const baixo = x.estoque_minimo > 0 && x.estoque_atual < x.estoque_minimo;
+    return '<tr data-nome="'+escapeHtml(x.nome)+'"'+(baixo?' class="ing-baixo"':'')+'>'+
+      '<td>'+escapeHtml(x.nome)+(baixo?' <span class="badge-baixo">baixo</span>':'')+'</td>'+
+      '<td class="num"><div class="inp inp-preco"><span class="pre">€</span><input class="ing-preco-inp" type="number" min="0" step="0.1" value="'+x.preco_kg.toFixed(2)+'"></div></td>'+
+      '<td class="num"><div class="inp inp-mini"><input class="ing-atual-inp" type="number" min="0" step="0.5" value="'+x.estoque_atual+'"></div></td>'+
+      '<td class="num"><div class="inp inp-mini"><input class="ing-min-inp" type="number" min="0" step="0.5" value="'+x.estoque_minimo+'"></div></td>'+
+      '<td style="width:44px"><button class="rm ing-rm" title="remover" aria-label="remover">&times;</button></td></tr>';
+  }).join('') || '<tr><td colspan="5" class="hint">Nenhum ingrediente encontrado.</td></tr>';
   alvo.querySelectorAll('tr[data-nome]').forEach(tr => {
     const nome = tr.getAttribute('data-nome');
     const inp = tr.querySelector('.ing-preco-inp'); if (inp) inp.addEventListener('change', () => atualizarPreco(nome, inp.value));
+    const ia = tr.querySelector('.ing-atual-inp'); if (ia) ia.addEventListener('change', () => atualizarEstoque(nome, 'atual', ia.value));
+    const im = tr.querySelector('.ing-min-inp'); if (im) im.addEventListener('change', () => atualizarEstoque(nome, 'minimo', im.value));
     const rm = tr.querySelector('.ing-rm'); if (rm) rm.addEventListener('click', () => removerIngrediente(nome));
   });
 }
@@ -715,9 +731,46 @@ async function removerIngrediente(nome){
   if (!sb) return;
   const { error } = await sb.from('ingredientes').delete().eq('nome', nome);
   if (error){ console.error(error); toast('Erro ao remover.', false); return; }
-  delete PRECOS[nome];
-  atualizarListaIngredientes(); montarDatalist(); renderIngredientes();
+  delete PRECOS[nome]; delete ESTOQUE[nome];
+  atualizarListaIngredientes(); montarDatalist(); renderIngredientes(); renderEstoqueBaixo(); atualizarNotificacoes();
   toast('Ingrediente removido');
+}
+/* ---- estoque (valores em kg) ---- */
+function numKg(n){ return Number(n).toLocaleString('it-IT', { maximumFractionDigits:1 }); }
+async function atualizarEstoque(nome, campo, valor){
+  const v = parseFloat(valor); if (isNaN(v) || v < 0 || !sb) return;
+  const col = (campo === 'atual') ? 'estoque_atual' : 'estoque_minimo';
+  const patch = {}; patch[col] = v;
+  const { error } = await sb.from('ingredientes').update(patch).eq('nome', nome);
+  if (error){ console.error(error); toast('Erro ao atualizar estoque.', false); return; }
+  if (!ESTOQUE[nome]) ESTOQUE[nome] = { atual:0, minimo:0 };
+  ESTOQUE[nome][campo] = v;
+  const it = listaIngredientes.find(x => x.nome === nome);
+  if (it){ if (campo === 'atual') it.estoque_atual = v; else it.estoque_minimo = v; }
+  renderIngredientes(); renderEstoqueBaixo(); atualizarNotificacoes();
+  toast('Estoque atualizado');
+}
+function estoqueBaixos(){ return listaIngredientes.filter(x => x.estoque_minimo > 0 && x.estoque_atual < x.estoque_minimo); }
+function renderEstoqueBaixo(){
+  const card = document.getElementById('card-estoque-baixo');
+  const alvo = document.getElementById('estoque-baixo-lista');
+  if (!card || !alvo) return;
+  const baixos = estoqueBaixos();
+  if (!baixos.length){ card.style.display = 'none'; return; }
+  card.style.display = '';
+  alvo.innerHTML = baixos.map(x =>
+    '<div class="eb-row"><span class="eb-nome">'+escapeHtml(x.nome)+'</span>'+
+    '<span class="eb-val">'+numKg(x.estoque_atual)+' kg · mín '+numKg(x.estoque_minimo)+' kg</span></div>'
+  ).join('');
+}
+function atualizarNotificacoes(){
+  const baixos = estoqueBaixos();
+  const badge = document.getElementById('notif-badge');
+  if (badge){ badge.textContent = baixos.length; badge.style.display = baixos.length ? '' : 'none'; }
+  const lista = document.getElementById('notif-lista'); if (!lista) return;
+  lista.innerHTML = baixos.length
+    ? baixos.map(x => '<div class="n"><span class="nd" style="background:var(--neg)"></span><div><div class="nt">Estoque baixo: '+escapeHtml(x.nome)+'</div><div class="ns">'+numKg(x.estoque_atual)+' kg · mínimo '+numKg(x.estoque_minimo)+' kg</div></div></div>').join('')
+    : '<p class="hint" style="padding:10px">Tudo em dia. Estoque acima do mínimo. ✓</p>';
 }
 atualizarListaIngredientes(); renderIngredientes();
 const buscaIng = document.getElementById('ing-busca'); if (buscaIng) buscaIng.addEventListener('input', renderIngredientes);
@@ -982,6 +1035,51 @@ async function salvarPagamento(cid, card){
   toast('Pagamento salvo');
   carregarPagamentos();
 }
+
+/* ================= GESTÃO — quadro de tarefas (kanban) ================= */
+let listaTarefas = [];
+const KB_COLS = [['afazer','A fazer'],['fazendo','Fazendo'],['feito','Feito']];
+async function carregarTarefas(){
+  if (!sb) return;
+  try {
+    const { data, error } = await sb.from('tarefas').select('*').order('criado_em');
+    if (!error && data){ listaTarefas = data; renderTarefas(); }
+  } catch (e){ console.error(e); }
+}
+function renderTarefas(){
+  KB_COLS.forEach(([col], i) => {
+    const alvo = document.getElementById('kb-' + col); if (!alvo) return;
+    const itens = listaTarefas.filter(t => t.coluna === col);
+    const cont = document.getElementById('kb-c-' + col); if (cont) cont.textContent = itens.length;
+    alvo.innerHTML = itens.map(t => {
+      const esq = i > 0 ? '<button class="kb-mv" title="voltar" onclick="moverTarefa('+t.id+',\''+KB_COLS[i-1][0]+'\')">&larr;</button>' : '';
+      const dir = i < KB_COLS.length-1 ? '<button class="kb-mv" title="avançar" onclick="moverTarefa('+t.id+',\''+KB_COLS[i+1][0]+'\')">&rarr;</button>' : '';
+      return '<div class="kb-card"><div class="kb-txt">'+escapeHtml(t.titulo)+'</div>'+
+        '<div class="kb-acts">'+esq+dir+'<button class="kb-rm" title="remover" onclick="removerTarefa('+t.id+')">&times;</button></div></div>';
+    }).join('') || '<div class="kb-vazio">—</div>';
+  });
+}
+async function adicionarTarefa(){
+  const el = document.getElementById('tarefa-nova'); const titulo = (el.value || '').trim();
+  if (!titulo){ toast('Digite a tarefa.', false); return; }
+  if (!sb){ toast('Configure o Supabase para salvar.', false); return; }
+  const { error } = await sb.from('tarefas').insert({ titulo, coluna:'afazer' });
+  if (error){ console.error(error); toast('Erro ao salvar.', false); return; }
+  el.value = ''; carregarTarefas(); toast('Tarefa adicionada');
+}
+async function moverTarefa(id, col){
+  if (!sb) return;
+  const { error } = await sb.from('tarefas').update({ coluna: col }).eq('id', id);
+  if (error){ console.error(error); toast('Erro ao mover.', false); return; }
+  carregarTarefas();
+}
+async function removerTarefa(id){
+  if (!sb) return;
+  const { error } = await sb.from('tarefas').delete().eq('id', id);
+  if (error){ console.error(error); toast('Erro ao remover.', false); return; }
+  carregarTarefas();
+}
+(function(){ const el = document.getElementById('tarefa-nova'); if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); adicionarTarefa(); } }); })();
 
 /* ================= TEMA (claro / escuro) ================= */
 function marcarTema(t){

@@ -448,6 +448,34 @@
   .topbar-home{ display:grid; }
 }
 
+/* ================= ESTOQUE (aba Ingredientes) ================= */
+.inp-mini{ padding:1px 8px; max-width:96px; margin-left:auto; }
+.inp-mini input{ font-family:var(--mono); padding:6px 2px; text-align:right; }
+tr.ing-baixo td{ background:var(--neg-soft) !important; }
+.badge-baixo{ display:inline-block; background:var(--neg); color:#fff; font-size:10px; font-weight:600;
+  padding:1px 7px; border-radius:999px; margin-left:6px; vertical-align:middle; }
+.eb-lista{ display:flex; flex-direction:column; gap:2px; }
+.eb-row{ display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid var(--border); font-size:14px; }
+.eb-row:last-child{ border-bottom:none; }
+.eb-nome{ font-weight:500; }
+.eb-val{ font-family:var(--mono); font-size:13px; color:var(--neg); }
+
+/* ================= GESTÃO — quadro de tarefas (kanban) ================= */
+.kanban{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+@media (max-width:820px){ .kanban{ grid-template-columns:1fr; } }
+.kb-col{ background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:14px; box-shadow:var(--shadow); }
+.kb-tit{ font-size:13px; font-weight:600; margin-bottom:12px; display:flex; align-items:center; }
+.kb-lista{ display:flex; flex-direction:column; gap:8px; min-height:44px; }
+.kb-card{ border:1px solid var(--border); border-radius:11px; padding:10px 12px; background:var(--canvas);
+  display:flex; justify-content:space-between; gap:8px; align-items:center; }
+.kb-txt{ font-size:13px; line-height:1.4; }
+.kb-acts{ display:flex; gap:4px; flex:none; }
+.kb-mv, .kb-rm{ border:none; width:26px; height:26px; border-radius:7px; cursor:pointer; font-size:14px; line-height:1;
+  background:var(--accent-soft); color:var(--accent); transition:filter .12s; }
+.kb-mv:hover, .kb-rm:hover{ filter:brightness(.95); }
+.kb-rm{ background:var(--neg-soft); color:var(--neg); }
+.kb-vazio{ font-size:12px; color:var(--faint); text-align:center; padding:10px; border:1px dashed var(--border); border-radius:9px; }
+
 /* ============================================================
    ORIENTAÇÃO — CELULAR DEITADO (paisagem, tela baixa)
    Em pé (retrato) já é tratado pelos breakpoints de largura acima.
