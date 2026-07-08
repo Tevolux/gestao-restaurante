@@ -510,34 +510,67 @@ try {
   }
 } catch (e) { console.error('Supabase não configurado:', e); }
 
-function mostrarErroLogin(msg){ const el = document.getElementById('lg-erro'); if (el) el.textContent = msg || ''; }
+function mostrarErroLogin(msg, ok){
+  const el = document.getElementById('lg-erro');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.style.color = ok ? 'var(--pos, #2E6B52)' : '';   /* verde no sucesso, vermelho (padrão) no erro */
+}
 function traduzErro(m){
   m = (m || '').toLowerCase();
   if (m.includes('invalid login'))      return 'Email ou senha incorretos.';
-  if (m.includes('already registered')) return 'Este email já tem conta. É só entrar.';
-  if (m.includes('password'))           return 'A senha precisa ter ao menos 6 caracteres.';
+  if (m.includes('already registered') || m.includes('already been registered')) return 'Este email já tem conta. É só entrar.';
+  if (m.includes('at least') || m.includes('password')) return 'A senha precisa ter ao menos 6 caracteres.';
   if (m.includes('email'))              return 'Confira o email digitado.';
   return 'Não deu certo. Confira os dados e tente de novo.';
+}
+/* valida os campos antes de chamar o Supabase; retorna null se inválido */
+function lerCredenciais(){
+  const email = document.getElementById('lg-email').value.trim();
+  const senha = document.getElementById('lg-senha').value;
+  if (!email || !senha){ mostrarErroLogin('Preencha email e senha.'); return null; }
+  if (senha.length < 6){ mostrarErroLogin('A senha precisa ter ao menos 6 caracteres.'); return null; }
+  return { email, senha };
+}
+/* trava os dois botões enquanto a requisição roda (evita clique duplo) */
+function travarLogin(travar, textoEntrar){
+  const bEntrar = document.getElementById('lg-btn-entrar');
+  const bCriar  = document.getElementById('lg-btn-criar');
+  [bEntrar, bCriar].forEach(b => { if (b) b.disabled = travar; });
+  if (bEntrar) bEntrar.textContent = travar ? (textoEntrar || 'Aguarde…') : 'Entrar';
 }
 
 async function fazerLogin(){
   if (!sb){ mostrarErroLogin('Configure suas chaves em js/config.js.'); return; }
   mostrarErroLogin('');
-  const email = document.getElementById('lg-email').value.trim();
-  const senha = document.getElementById('lg-senha').value;
-  const { error } = await sb.auth.signInWithPassword({ email, password: senha });
+  const cred = lerCredenciais(); if (!cred) return;
+  travarLogin(true, 'Entrando…');
+  const { error } = await sb.auth.signInWithPassword({ email: cred.email, password: cred.senha });
+  travarLogin(false);
   if (error) mostrarErroLogin(traduzErro(error.message));
+  /* sucesso: onAuthStateChange chama entrarApp() automaticamente */
 }
 async function criarConta(){
   if (!sb){ mostrarErroLogin('Configure suas chaves em js/config.js.'); return; }
   mostrarErroLogin('');
-  const email = document.getElementById('lg-email').value.trim();
-  const senha = document.getElementById('lg-senha').value;
-  const { error } = await sb.auth.signUp({ email, password: senha });
-  if (error) mostrarErroLogin(traduzErro(error.message));
-  else toast('Conta criada! Entrando…');
+  const cred = lerCredenciais(); if (!cred) return;
+  travarLogin(true, 'Criando…');
+  const { data, error } = await sb.auth.signUp({ email: cred.email, password: cred.senha });
+  travarLogin(false);
+  if (error){ mostrarErroLogin(traduzErro(error.message)); return; }
+  if (data && data.session){
+    toast('Conta criada! Entrando…');                 /* auto-confirm ligado → já entra */
+  } else {
+    mostrarErroLogin('Conta criada! Confirme o link enviado ao seu email para entrar.', true);
+  }
 }
 async function sair(){ if (sb) await sb.auth.signOut(); }
+
+/* Enter em qualquer campo do login dispara "Entrar" */
+['lg-email','lg-senha'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); fazerLogin(); } });
+});
 
 async function entrarApp(session){
   document.getElementById('login').style.display = 'none';
