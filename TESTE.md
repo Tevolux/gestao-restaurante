@@ -61,4 +61,19 @@ Supabase (idempotente — pode rodar de novo). Popula 12 receitas, 10 colaborado
 
 ---
 
+## 10. Compras (reposição)
+- [ ] Menu → **Compras**: lista os itens abaixo do mínimo com a quantidade sugerida (mínimo − estoque).
+- [ ] Ajustar a quantidade a comprar recalcula o custo e o **total**.
+- [ ] Com tudo acima do mínimo, mostra "estoque em dia".
+
+## 11. Operação (produção do dia)
+- [ ] Módulos → **Operação**: digite pratos por receita → calcula custo, receita, lucro e margem.
+- [ ] A **lista de compras agregada** soma os ingredientes (com a folga %).
+
+## 12. Projeção (4 anos)
+- [ ] Módulos → **Projeção**: ajuste base/crescimento/sazonalidade/margem → o gráfico de 48 meses redesenha.
+- [ ] Os KPIs (faturamento/lucro 4 anos, ano 4, alta temporada) atualizam.
+
+---
+
 Achou algo errado? Anote a **tela**, o **passo** e a mensagem do **Console (F12)**.

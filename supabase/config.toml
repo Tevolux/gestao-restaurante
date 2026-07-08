@@ -1,0 +1,25 @@
+# Config do Supabase CLI.
+# Conecte este repositório ao projeto remoto com:
+#   supabase login
+#   supabase link --project-ref ctgelvortcggdykesxmh
+# Depois, cada push com novos arquivos em supabase/migrations/ é aplicado no banco.
+
+project_id = "massa-certa"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "https://massa-certa.vercel.app"
+additional_redirect_urls = ["http://localhost:8000"]
