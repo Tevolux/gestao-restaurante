@@ -51,11 +51,20 @@ montarDatalist();
 const TICKET_MEDIO = 8.5;   /* € médio por prato (dashboard) */
 function br(n, casas=2){ return n.toLocaleString('it-IT', {minimumFractionDigits:casas, maximumFractionDigits:casas}); }
 function eur(n){ return '€ ' + br(n, 2); }
+/* mostra quantidade em kg (o banco guarda em gramas por compatibilidade) */
+function kgTxt(g){ return (Number(g)/1000).toLocaleString('it-IT', { maximumFractionDigits:3 }); }
 function compact(n){
   if (n >= 1e6) return '€ ' + br(n/1e6,1) + 'M';
   if (n >= 1e3) return '€ ' + br(n/1e3,0) + 'k';
   return '€ ' + br(n,0);
 }
+
+/* cores dos gráficos conforme o tema (claro/escuro) */
+function temaEscuro(){ return document.documentElement.dataset.theme === 'dark'; }
+function cEixo(){ return temaEscuro() ? '#8F887D' : '#9B968C'; }
+function cGrade(){ return temaEscuro() ? 'rgba(255,255,255,.07)' : '#EEEBE3'; }
+function cRotulo(){ return temaEscuro() ? '#E8E5DE' : '#1D1B15'; }
+function cBordaFatia(){ return temaEscuro() ? '#211E18' : '#fff'; }
 
 document.getElementById('hoje-data').textContent =
   new Date().toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long' });
@@ -82,6 +91,8 @@ function animateVal(el, target, fmt){
 
 /* ===== navegação ===== */
 const META = {
+  menu:['Menu','Todas as áreas do sistema em um só lugar'],
+  modulos:['Módulos','Operação, projeção e gestão'],
   dashboard:['Dashboard','Visão geral da operação de hoje'],
   receitas:['Receitas','Monte pratos e calcule o custo'],
   ingredientes:['Ingredientes','Cadastro e preços dos insumos'],
@@ -93,13 +104,22 @@ const META = {
   gestao:['Gestão','Tarefas e acompanhamento'],
 };
 let chartFeito = false;
+/* quais seções pertencem a cada entrada da barra lateral (para destacar o "pai") */
+const SECOES_MENU = ['dashboard','receitas','ingredientes','vendas','colaboradores','pagamentos'];
+const SECOES_MODULOS = ['operacao','projecao','gestao'];
+function marcarNav(id){
+  document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('ativa'));
+  let pai = null;
+  if (id === 'menu' || SECOES_MENU.includes(id)) pai = 'menu';
+  else if (id === 'modulos' || SECOES_MODULOS.includes(id)) pai = 'modulos';
+  if (pai){ const b = document.querySelector('.nav-item[data-pg="' + pai + '"]'); if (b) b.classList.add('ativa'); }
+}
 function navegar(id){
   document.querySelectorAll('.pg').forEach(p => p.hidden = true);
-  document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('ativa'));
   const pgEl = document.getElementById('pg-' + id);
   pgEl.hidden = false;
   pgEl.classList.remove('anim'); void pgEl.offsetWidth; pgEl.classList.add('anim');
-  document.querySelector('.nav-item[data-pg="' + id + '"]').classList.add('ativa');
+  marcarNav(id);
   document.getElementById('pg-title').textContent = META[id][0];
   document.getElementById('pg-sub').textContent = META[id][1];
   if (id === 'dashboard' && !chartFeito) desenharDashboard();
@@ -116,7 +136,7 @@ function addLinha(nome, qtd){
   const tr = document.createElement('tr');
   tr.innerHTML =
     '<td><div class="inp"><input class="ing-nome" list="ing-list" placeholder="ex.: guanciale" value="'+(nome||'')+'"></div></td>' +
-    '<td><div class="inp"><input class="ing-qtd" type="number" min="0" step="10" value="'+(qtd||0)+'"></div></td>' +
+    '<td><div class="inp"><input class="ing-qtd" type="number" min="0" step="0.001" value="'+(qtd||0)+'"></div></td>' +
     '<td class="ing-preco num">—</td><td class="ing-custo num">€ 0,00</td>' +
     '<td><button class="rm" title="remover" aria-label="remover">&times;</button></td>';
   tr.querySelector('.rm').addEventListener('click', () => { tr.remove(); recalcularReceita(); });
@@ -130,7 +150,7 @@ function recalcularReceita(){
     const nome = tr.querySelector('.ing-nome').value;
     const qtd = parseFloat(tr.querySelector('.ing-qtd').value) || 0;
     const preco = precoDe(nome);
-    const custo = preco !== null ? (qtd/1000)*preco : 0;
+    const custo = preco !== null ? qtd*preco : 0;
     tr.querySelector('.ing-preco').textContent = preco !== null ? eur(preco) : '—';
     tr.querySelector('.ing-custo').textContent = eur(custo);
     total += custo;
@@ -142,6 +162,7 @@ function recalcularReceita(){
 document.getElementById('rec-rende').addEventListener('input', recalcularReceita);
 
 let receitasSalvas = [];
+let recEditId = null;   // id da receita sendo editada (null = nova)
 async function salvarReceita(){
   const nome = document.getElementById('rec-nome').value.trim() || 'Receita sem nome';
   const rende = Math.max(1, parseInt(document.getElementById('rec-rende').value,10)||1);
@@ -151,34 +172,50 @@ async function salvarReceita(){
     const n = tr.querySelector('.ing-nome').value.trim();
     const q = parseFloat(tr.querySelector('.ing-qtd').value)||0;
     if (!n||q<=0) return;
-    const p = precoDe(n); total += p!==null ? (q/1000)*p : 0;
-    itens.push({ ing:n, g:q });
+    const p = precoDe(n); total += p!==null ? q*p : 0;
+    itens.push({ ing:n, g: Math.round(q*1000) });
   });
   if (!itens.length){ toast('Adicione ao menos um ingrediente.', false); return; }
   if (!sb){ toast('Configure o Supabase (js/config.js) para salvar.', false); return; }
-  const { error } = await sb.from('receitas').insert({ nome, rende, itens, custo_por_prato: total/rende, modo_preparo, foto: fotoAtual });
-  if (error){ console.error(error); toast('Erro ao salvar. Tente de novo.', false); return; }
-  toast('Receita salva no banco');
+  const reg = { nome, rende, itens, custo_por_prato: total/rende, modo_preparo, foto: fotoAtual };
+  const resp = recEditId
+    ? await sb.from('receitas').update(reg).eq('id', recEditId)
+    : await sb.from('receitas').insert(reg);
+  if (resp.error){ console.error(resp.error); toast('Erro ao salvar. Tente de novo.', false); return; }
+  toast(recEditId ? 'Receita atualizada' : 'Receita salva no banco');
   fecharCriarReceita();
   carregarReceitas();
 }
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+/* quebra o modo de preparo em passos (um por linha; se vier tudo numa linha, separa por frase)
+   e remove qualquer numeração que o usuário já tenha digitado — a lista <ol> numera do 1. */
+function stepsPreparo(txt){
+  txt = (txt || '').trim(); if (!txt) return [];
+  let linhas = txt.split(/\r?\n+/).map(s => s.trim()).filter(Boolean);
+  if (linhas.length === 1) linhas = linhas[0].split(/(?<=[.!?])\s+(?=[A-Za-zÀ-Ú0-9])/).map(s => s.trim()).filter(Boolean);
+  return linhas.map(s => s.replace(/^\s*\d+[.)\-–]\s*/, '').trim()).filter(Boolean);
+}
 
 function renderSalvas(){
   document.getElementById('rec-contador').textContent = receitasSalvas.length;
   document.getElementById('rec-salvas').innerHTML = receitasSalvas.map(r => {
-    const itensTxt = (r.itens||[]).map(x => escapeHtml(x.ing)+' ('+br(x.g,0)+' g)').join(', ');
+    const itensLista = (r.itens||[]).map(x => '<li>'+escapeHtml(x.ing)+'<span>'+kgTxt(x.g)+' kg</span></li>').join('');
+    const itensBloco = itensLista ? '<div class="rc-ings-tit">Ingredientes</div><ul class="rc-ings">'+itensLista+'</ul>' : '';
     const foto = r.foto
       ? '<div class="rc-foto" style="background-image:url(\''+r.foto+'\')" onclick="trocarFoto('+r.id+')" title="Trocar foto"></div>'
       : '<div class="rc-foto rc-sem" onclick="trocarFoto('+r.id+')">+ adicionar foto</div>';
-    const prep = r.modo_preparo ? '<div class="rc-prep"><b>Preparo:</b> '+escapeHtml(r.modo_preparo)+'</div>' : '';
+    const passos = stepsPreparo(r.modo_preparo);
+    const prep = passos.length ? '<div class="rc-ings-tit">Modo de preparo</div><ol class="rc-passos">'+passos.map(s => '<li>'+escapeHtml(s)+'</li>').join('')+'</ol>' : '';
     return '<div class="rc">'+foto+
       '<div class="rc-corpo">'+
         '<div class="rc-top"><b>'+escapeHtml(r.nome)+'</b><span class="mono rc-custo">'+eur(r.custo_por_prato)+'</span></div>'+
         '<div class="hint">rende '+r.rende+' prato(s) · '+eur(r.custo_por_prato)+' por prato</div>'+
-        '<div class="hint" style="margin-top:6px"><b>Ingredientes:</b> '+itensTxt+'</div>'+
+        itensBloco+
         prep+
-        '<button class="btn ghost" style="margin-top:10px;padding:5px 12px" onclick="removerReceita('+r.id+')">remover</button>'+
+        '<div style="display:flex;gap:8px;margin-top:10px">'+
+          '<button class="btn ghost" style="padding:5px 12px" onclick="editarReceita('+r.id+')">editar</button>'+
+          '<button class="btn ghost" style="padding:5px 12px" onclick="removerReceita('+r.id+')">remover</button>'+
+        '</div>'+
       '</div></div>';
   }).join('') || '<p class="hint">Nenhuma receita ainda. Clique em <b>Criar receita</b> para começar.</p>';
 }
@@ -214,6 +251,9 @@ function redimensionarImagem(file, cb){
 
 /* ---- abrir / fechar a tela de criar receita ---- */
 function abrirCriarReceita(){
+  recEditId = null;
+  const _t = document.getElementById('rec-modal-titulo'); if (_t) _t.textContent = 'Criar receita';
+  const _b = document.getElementById('rec-modal-btn'); if (_b) _b.textContent = 'Salvar receita';
   document.getElementById('rec-nome').value = '';
   document.getElementById('rec-rende').value = 1;
   document.getElementById('rec-preparo').value = '';
@@ -224,6 +264,26 @@ function abrirCriarReceita(){
   document.getElementById('modal-receita').classList.add('aberto');
 }
 function fecharCriarReceita(){ document.getElementById('modal-receita').classList.remove('aberto'); }
+function editarReceita(id){
+  const r = receitasSalvas.find(x => x.id === id); if (!r) return;
+  recEditId = id;
+  document.getElementById('rec-nome').value = r.nome || '';
+  document.getElementById('rec-rende').value = r.rende || 1;
+  document.getElementById('rec-preparo').value = r.modo_preparo || '';
+  fotoAtual = r.foto || null;
+  const prev = document.getElementById('rec-foto-preview');
+  if (fotoAtual){ prev.style.backgroundImage = "url('" + fotoAtual + "')"; prev.classList.add('tem'); }
+  else { prev.style.backgroundImage = ''; prev.classList.remove('tem'); }
+  const inp = document.getElementById('rec-foto-input'); if (inp) inp.value = '';
+  linhasBody.innerHTML = '';
+  const itens = r.itens || [];
+  if (itens.length) itens.forEach(x => addLinha(x.ing, Number(x.g)/1000));   // grama → kg no editor
+  else { addLinha(); addLinha(); }
+  recalcularReceita();
+  const t = document.getElementById('rec-modal-titulo'); if (t) t.textContent = 'Editar receita';
+  const b = document.getElementById('rec-modal-btn'); if (b) b.textContent = 'Salvar alterações';
+  document.getElementById('modal-receita').classList.add('aberto');
+}
 async function removerReceita(id){
   if (!sb) return;
   const { error } = await sb.from('receitas').delete().eq('id', id);
@@ -302,7 +362,7 @@ document.getElementById('f-estacao').innerHTML =
   '<option value="ano">Ano todo</option><option value="inverno">Inverno</option><option value="primavera">Primavera</option><option value="verao">Verão</option><option value="outono">Outono</option>';
 popularPaises('todas');
 
-let pieChart, barChart;
+let pieChart, barChart, dashChart = null;
 function renderVendas(){
   const reg = document.getElementById('f-regiao').value;
   const paisSel = document.getElementById('f-pais').value;
@@ -339,9 +399,9 @@ function renderVendas(){
   if (!pieChart){
     pieChart = new Chart(document.getElementById('pie-pratos'), {
       type:'doughnut',
-      data:{ labels:PRATOS, datasets:[{ data:dishCounts, offset:offsets, backgroundColor:CORES_PIZZA, borderColor:'#fff', borderWidth:2 }] },
+      data:{ labels:PRATOS, datasets:[{ data:dishCounts, offset:offsets, backgroundColor:CORES_PIZZA, borderColor:cBordaFatia(), borderWidth:2 }] },
       options:{ responsive:true, maintainAspectRatio:false, cutout:'58%',
-        plugins:{ legend:{ position:'right', labels:{ color:'#1D1B15', font:{family:'Plus Jakarta Sans', size:12}, usePointStyle:true, pointStyleWidth:10, padding:9 } },
+        plugins:{ legend:{ position:'right', labels:{ color:cRotulo(), font:{family:'Plus Jakarta Sans', size:12}, usePointStyle:true, pointStyleWidth:10, padding:9 } },
           tooltip:{ callbacks:{ label:(c)=> c.label + ': ' + itNum(c.parsed) + ' pratos' } } } },
     });
   } else { pieChart.data.datasets[0].data = dishCounts; pieChart.data.datasets[0].offset = offsets; pieChart.update(); }
@@ -377,8 +437,8 @@ function renderVendas(){
       data:{ labels:MESES, datasets:[{ data:serieBar, backgroundColor:coresBar, borderRadius:6, maxBarThickness:36 }] },
       options:{ responsive:true, maintainAspectRatio:false,
         plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=> itNum(c.parsed.y) + (pratoSel!=='todos' ? ' pratos' : ' clientes') } } },
-        scales:{ x:{ grid:{display:false}, ticks:{ color:'#9B968C', font:{family:'Plus Jakarta Sans', size:11} } },
-          y:{ grid:{color:'#EEEBE3'}, ticks:{ color:'#9B968C', font:{family:'Plus Jakarta Sans', size:11}, callback:(v)=> (v>=1000?(v/1000)+'k':v) }, beginAtZero:true } } },
+        scales:{ x:{ grid:{display:false}, ticks:{ color:cEixo(), font:{family:'Plus Jakarta Sans', size:11} } },
+          y:{ grid:{color:cGrade()}, ticks:{ color:cEixo(), font:{family:'Plus Jakarta Sans', size:11}, callback:(v)=> (v>=1000?(v/1000)+'k':v) }, beginAtZero:true } } },
     });
   } else { barChart.data.datasets[0].data = serieBar; barChart.data.datasets[0].backgroundColor = coresBar; barChart.update(); }
 
@@ -430,15 +490,15 @@ function desenharDashboard(){
   ).join('');
 
   /* gráfico */
-  new Chart(document.getElementById('dash-chart'), {
+  dashChart = new Chart(document.getElementById('dash-chart'), {
     type:'line',
     data:{ labels: ult14.map(d => d.data.slice(8,10)+'/'+d.data.slice(5,7)),
       datasets:[{ label:'Pratos/dia', data: ult14.map(d=>d.qtd), borderColor:'#2E6B52',
         backgroundColor:'rgba(46,107,82,.10)', fill:true, tension:.35, borderWidth:2.5, pointRadius:0, pointHoverRadius:5 }] },
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=>br(c.parsed.y,0)+' pratos' } } },
-      scales:{ x:{ grid:{display:false}, ticks:{ color:'#9B968C', font:{family:'Plus Jakarta Sans', size:11} } },
-        y:{ grid:{ color:'#EEEBE3' }, ticks:{ color:'#9B968C', font:{family:'Plus Jakarta Sans', size:11} }, beginAtZero:true } } },
+      scales:{ x:{ grid:{display:false}, ticks:{ color:cEixo(), font:{family:'Plus Jakarta Sans', size:11} } },
+        y:{ grid:{ color:cGrade() }, ticks:{ color:cEixo(), font:{family:'Plus Jakarta Sans', size:11} }, beginAtZero:true } } },
   });
   chartFeito = true;
 }
@@ -468,6 +528,11 @@ const CMDS = [
   { label:'Adicionar colaborador',  hint:'Ação',    run:()=>{ navegar('colaboradores'); abrirCadastroColab(); } },
   { label:'Pagamentos',             hint:'Ir para', run:()=>navegar('pagamentos') },
   { label:'Analisar vendas por país', hint:'Ação',  run:()=>navegar('vendas') },
+  { label:'Menu',                     hint:'Ir para', run:()=>navegar('menu') },
+  { label:'Módulos',                  hint:'Ir para', run:()=>navegar('modulos') },
+  { label:'Configurações da conta',   hint:'Conta',   run:()=>abrirSettings() },
+  { label:'Mudar tema (claro/escuro)',hint:'Ação',    run:()=>aplicarTema(temaEscuro() ? 'light' : 'dark') },
+  { label:'Sair da conta',            hint:'Ação',    run:()=>sair() },
 ];
 let cmdSel = 0, cmdFiltrados = CMDS.slice();
 function openCmd(){
@@ -564,7 +629,7 @@ async function criarConta(){
     mostrarErroLogin('Conta criada! Confirme o link enviado ao seu email para entrar.', true);
   }
 }
-async function sair(){ if (sb) await sb.auth.signOut(); }
+async function sair(){ fecharSettings(); if (sb) await sb.auth.signOut(); }
 
 /* Enter em qualquer campo do login dispara "Entrar" */
 ['lg-email','lg-senha'].forEach(id => {
@@ -573,11 +638,14 @@ async function sair(){ if (sb) await sb.auth.signOut(); }
 });
 
 let usuarioAtual = null;   // id do usuário logado — evita recarregar tudo a cada evento de auth (refresh de token, foco na aba)
+let usuarioMeta = {}, emailAtual = '', perfilFoto = null;
 async function entrarApp(session){
   document.getElementById('login').style.display = 'none';
   const email = (session && session.user) ? session.user.email : '';
-  const elEmail = document.getElementById('user-email'); if (elEmail) elEmail.textContent = email || 'Usuário';
-  const elAv = document.getElementById('user-av'); if (elAv) elAv.textContent = ((email && email[0]) || 'U').toUpperCase();
+  emailAtual = email;
+  usuarioMeta = (session && session.user && session.user.user_metadata) ? session.user.user_metadata : {};
+  const elEmail = document.getElementById('user-email'); if (elEmail) elEmail.textContent = (usuarioMeta.nome || email || 'Usuário');
+  aplicarAvatar();
   const uid = (session && session.user) ? session.user.id : null;
   if (uid && uid === usuarioAtual) return;   // já carregado para este usuário → não recarrega à toa
   usuarioAtual = uid;
@@ -688,6 +756,7 @@ if (inpTroca) inpTroca.addEventListener('change', function(){
 let listaColab = [];
 let colabFoto = null;   // foto do colaborador (base64)
 let colabDocs = [];     // documentos/comprovantes (base64[])
+let colabEditId = null; // id do colaborador sendo editado (null = novo cadastro)
 
 async function carregarColaboradores(){
   if (!sb) return;
@@ -712,18 +781,41 @@ function renderColaboradores(){
         '<div class="colab-linha">✉️ '+escapeHtml(c.email||'—')+'</div>'+
         '<div class="colab-linha">📍 '+escapeHtml(c.endereco||'—')+'</div>'+
         (ndocs ? '<div class="colab-linha hint">📎 '+ndocs+' documento(s) anexado(s)</div>' : '')+
-        '<button class="btn ghost" style="margin-top:10px;padding:5px 12px" onclick="removerColaborador('+c.id+')">remover</button>'+
+        '<div style="display:flex;gap:8px;margin-top:10px">'+
+          '<button class="btn ghost" style="padding:5px 12px" onclick="editarColaborador('+c.id+')">editar</button>'+
+          '<button class="btn ghost" style="padding:5px 12px" onclick="removerColaborador('+c.id+')">remover</button>'+
+        '</div>'+
       '</div></div>';
   }).join('') || '<p class="hint">Nenhum colaborador ainda. Clique em <b>Adicionar colaborador</b>.</p>';
 }
 function abrirCadastroColab(){
   ['colab-nome','colab-cargo','colab-doc','colab-endereco','colab-tel','colab-email'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-  colabFoto = null; colabDocs = [];
+  colabFoto = null; colabDocs = []; colabEditId = null;
+  const t = document.getElementById('colab-modal-titulo'); if (t) t.textContent = 'Adicionar colaborador';
+  const btn = document.getElementById('colab-modal-btn'); if (btn) btn.textContent = 'Salvar colaborador';
   const prev = document.getElementById('colab-foto-preview'); if (prev){ prev.style.backgroundImage = ''; prev.classList.remove('tem'); }
   renderDocsPreview();
   document.getElementById('modal-colab').classList.add('aberto');
 }
 function fecharCadastroColab(){ document.getElementById('modal-colab').classList.remove('aberto'); }
+function editarColaborador(id){
+  const c = listaColab.find(x => x.id === id); if (!c) return;
+  colabEditId = id;
+  const set = (elId, v) => { const el = document.getElementById(elId); if (el) el.value = v || ''; };
+  set('colab-nome', c.nome); set('colab-cargo', c.cargo); set('colab-doc', c.documento);
+  set('colab-endereco', c.endereco); set('colab-tel', c.telefone); set('colab-email', c.email);
+  colabFoto = c.foto || null;
+  colabDocs = Array.isArray(c.documentos) ? c.documentos.slice() : [];
+  const prev = document.getElementById('colab-foto-preview');
+  if (prev){
+    if (colabFoto){ prev.style.backgroundImage = "url('" + colabFoto + "')"; prev.classList.add('tem'); }
+    else { prev.style.backgroundImage = ''; prev.classList.remove('tem'); }
+  }
+  renderDocsPreview();
+  const t = document.getElementById('colab-modal-titulo'); if (t) t.textContent = 'Editar colaborador';
+  const btn = document.getElementById('colab-modal-btn'); if (btn) btn.textContent = 'Salvar alterações';
+  document.getElementById('modal-colab').classList.add('aberto');
+}
 function onColabFoto(input){
   const file = input.files && input.files[0]; if (!file) return;
   redimensionarImagem(file, dataUrl => {
@@ -754,9 +846,11 @@ async function salvarColaborador(){
     foto:      colabFoto,
     documentos: colabDocs,
   };
-  const { error } = await sb.from('colaboradores').insert(reg);
-  if (error){ console.error(error); toast('Erro ao salvar.', false); return; }
-  toast('Colaborador cadastrado');
+  const resp = colabEditId
+    ? await sb.from('colaboradores').update(reg).eq('id', colabEditId)
+    : await sb.from('colaboradores').insert(reg);
+  if (resp.error){ console.error(resp.error); toast('Erro ao salvar.', false); return; }
+  toast(colabEditId ? 'Colaborador atualizado' : 'Colaborador cadastrado');
   fecharCadastroColab();
   carregarColaboradores();
 }
@@ -888,3 +982,96 @@ async function salvarPagamento(cid, card){
   toast('Pagamento salvo');
   carregarPagamentos();
 }
+
+/* ================= TEMA (claro / escuro) ================= */
+function marcarTema(t){
+  const c = document.getElementById('tema-claro'), e = document.getElementById('tema-escuro');
+  if (c) c.classList.toggle('on', t !== 'dark');
+  if (e) e.classList.toggle('on', t === 'dark');
+}
+function aplicarTema(t){
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem('tema', t); } catch (e) {}
+  marcarTema(t);
+  redesenharGraficos();                 // atualiza as cores dos gráficos na hora
+}
+function redesenharGraficos(){
+  if (dashChart){ dashChart.destroy(); dashChart = null; chartFeito = false; desenharDashboard(); }
+  if (pieChart || barChart){
+    if (pieChart){ pieChart.destroy(); pieChart = null; }
+    if (barChart){ barChart.destroy(); barChart = null; }
+    renderVendas();
+  }
+}
+/* aplica o tema salvo já na carga (o <head> também faz; aqui sincroniza o botão) */
+(function(){ let t = 'light'; try { t = localStorage.getItem('tema') || 'light'; } catch (e) {} document.documentElement.dataset.theme = t; marcarTema(t); })();
+
+/* ================= CONFIGURAÇÕES DA CONTA ================= */
+function aplicarAvatar(){
+  const foto = usuarioMeta && usuarioMeta.foto;
+  const inicial = ((emailAtual && emailAtual[0]) || 'U').toUpperCase();
+  ['user-av','topbar-av'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    if (foto){ el.style.backgroundImage = "url('" + foto + "')"; el.textContent = ''; }
+    else { el.style.backgroundImage = ''; el.textContent = inicial; }
+  });
+}
+function abrirSettings(){ carregarSettings(); document.getElementById('modal-settings').classList.add('aberto'); }
+function fecharSettings(){ document.getElementById('modal-settings').classList.remove('aberto'); }
+function carregarSettings(){
+  marcarTema(temaEscuro() ? 'dark' : 'light');
+  const m = usuarioMeta || {};
+  const g = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+  g('set-nome', m.nome); g('set-tel', m.telefone); g('set-email', emailAtual);
+  g('set-senha', ''); g('set-senha2', '');
+  perfilFoto = m.foto || null;
+  const prev = document.getElementById('set-foto-preview');
+  if (prev){
+    if (perfilFoto){ prev.style.backgroundImage = "url('" + perfilFoto + "')"; prev.classList.add('tem'); }
+    else { prev.style.backgroundImage = ''; prev.classList.remove('tem'); }
+  }
+}
+function onSettingsFoto(input){
+  const f = input.files && input.files[0]; if (!f) return;
+  redimensionarImagem(f, url => {
+    perfilFoto = url;
+    const p = document.getElementById('set-foto-preview');
+    p.style.backgroundImage = "url('" + url + "')"; p.classList.add('tem');
+  });
+}
+async function salvarPerfil(){
+  if (!sb){ toast('Configure o Supabase para salvar.', false); return; }
+  const nome = document.getElementById('set-nome').value.trim();
+  const telefone = document.getElementById('set-tel').value.trim();
+  const { error } = await sb.auth.updateUser({ data: { nome, telefone, foto: perfilFoto } });
+  if (error){ console.error(error); toast('Erro ao salvar os dados.', false); return; }
+  usuarioMeta = Object.assign({}, usuarioMeta, { nome, telefone, foto: perfilFoto });
+  aplicarAvatar();
+  const elEmail = document.getElementById('user-email'); if (elEmail) elEmail.textContent = nome || emailAtual || 'Usuário';
+  toast('Dados atualizados');
+}
+async function alterarEmail(){
+  if (!sb){ toast('Configure o Supabase.', false); return; }
+  const email = document.getElementById('set-email').value.trim();
+  if (!email){ toast('Digite o novo email.', false); return; }
+  if (email === emailAtual){ toast('Este já é o seu email.', false); return; }
+  const { error } = await sb.auth.updateUser({ email });
+  if (error){ console.error(error); toast(traduzErro(error.message), false); return; }
+  toast('Confirme o link enviado ao novo email.');
+}
+async function alterarSenha(){
+  if (!sb){ toast('Configure o Supabase.', false); return; }
+  const s1 = document.getElementById('set-senha').value, s2 = document.getElementById('set-senha2').value;
+  if (s1.length < 6){ toast('A senha precisa de ao menos 6 caracteres.', false); return; }
+  if (s1 !== s2){ toast('As senhas não conferem.', false); return; }
+  const { error } = await sb.auth.updateUser({ password: s1 });
+  if (error){ console.error(error); toast(traduzErro(error.message), false); return; }
+  document.getElementById('set-senha').value = ''; document.getElementById('set-senha2').value = '';
+  toast('Senha alterada');
+}
+
+/* ================= ESTADO INICIAL DA NAVEGAÇÃO ================= */
+/* no celular abre direto no hub Menu (navega pelos ícones); no desktop
+   fica no Dashboard, mas já destaca "Menu" na barra lateral (seção pai). */
+if (window.innerWidth <= 820) navegar('menu');
+else marcarNav('dashboard');
