@@ -51,6 +51,8 @@ montarDatalist();
 const TICKET_MEDIO = 8.5;   /* € médio por prato (dashboard) */
 function br(n, casas=2){ return n.toLocaleString('it-IT', {minimumFractionDigits:casas, maximumFractionDigits:casas}); }
 function eur(n){ return '€ ' + br(n, 2); }
+/* mostra quantidade em kg (o banco guarda em gramas por compatibilidade) */
+function kgTxt(g){ return (Number(g)/1000).toLocaleString('it-IT', { maximumFractionDigits:3 }); }
 function compact(n){
   if (n >= 1e6) return '€ ' + br(n/1e6,1) + 'M';
   if (n >= 1e3) return '€ ' + br(n/1e3,0) + 'k';
@@ -134,7 +136,7 @@ function addLinha(nome, qtd){
   const tr = document.createElement('tr');
   tr.innerHTML =
     '<td><div class="inp"><input class="ing-nome" list="ing-list" placeholder="ex.: guanciale" value="'+(nome||'')+'"></div></td>' +
-    '<td><div class="inp"><input class="ing-qtd" type="number" min="0" step="10" value="'+(qtd||0)+'"></div></td>' +
+    '<td><div class="inp"><input class="ing-qtd" type="number" min="0" step="0.001" value="'+(qtd||0)+'"></div></td>' +
     '<td class="ing-preco num">—</td><td class="ing-custo num">€ 0,00</td>' +
     '<td><button class="rm" title="remover" aria-label="remover">&times;</button></td>';
   tr.querySelector('.rm').addEventListener('click', () => { tr.remove(); recalcularReceita(); });
@@ -148,7 +150,7 @@ function recalcularReceita(){
     const nome = tr.querySelector('.ing-nome').value;
     const qtd = parseFloat(tr.querySelector('.ing-qtd').value) || 0;
     const preco = precoDe(nome);
-    const custo = preco !== null ? (qtd/1000)*preco : 0;
+    const custo = preco !== null ? qtd*preco : 0;
     tr.querySelector('.ing-preco').textContent = preco !== null ? eur(preco) : '—';
     tr.querySelector('.ing-custo').textContent = eur(custo);
     total += custo;
@@ -160,6 +162,7 @@ function recalcularReceita(){
 document.getElementById('rec-rende').addEventListener('input', recalcularReceita);
 
 let receitasSalvas = [];
+let recEditId = null;   // id da receita sendo editada (null = nova)
 async function salvarReceita(){
   const nome = document.getElementById('rec-nome').value.trim() || 'Receita sem nome';
   const rende = Math.max(1, parseInt(document.getElementById('rec-rende').value,10)||1);
@@ -169,14 +172,17 @@ async function salvarReceita(){
     const n = tr.querySelector('.ing-nome').value.trim();
     const q = parseFloat(tr.querySelector('.ing-qtd').value)||0;
     if (!n||q<=0) return;
-    const p = precoDe(n); total += p!==null ? (q/1000)*p : 0;
-    itens.push({ ing:n, g:q });
+    const p = precoDe(n); total += p!==null ? q*p : 0;
+    itens.push({ ing:n, g: Math.round(q*1000) });
   });
   if (!itens.length){ toast('Adicione ao menos um ingrediente.', false); return; }
   if (!sb){ toast('Configure o Supabase (js/config.js) para salvar.', false); return; }
-  const { error } = await sb.from('receitas').insert({ nome, rende, itens, custo_por_prato: total/rende, modo_preparo, foto: fotoAtual });
-  if (error){ console.error(error); toast('Erro ao salvar. Tente de novo.', false); return; }
-  toast('Receita salva no banco');
+  const reg = { nome, rende, itens, custo_por_prato: total/rende, modo_preparo, foto: fotoAtual };
+  const resp = recEditId
+    ? await sb.from('receitas').update(reg).eq('id', recEditId)
+    : await sb.from('receitas').insert(reg);
+  if (resp.error){ console.error(resp.error); toast('Erro ao salvar. Tente de novo.', false); return; }
+  toast(recEditId ? 'Receita atualizada' : 'Receita salva no banco');
   fecharCriarReceita();
   carregarReceitas();
 }
@@ -193,7 +199,7 @@ function stepsPreparo(txt){
 function renderSalvas(){
   document.getElementById('rec-contador').textContent = receitasSalvas.length;
   document.getElementById('rec-salvas').innerHTML = receitasSalvas.map(r => {
-    const itensLista = (r.itens||[]).map(x => '<li>'+escapeHtml(x.ing)+'<span>'+br(x.g,0)+' g</span></li>').join('');
+    const itensLista = (r.itens||[]).map(x => '<li>'+escapeHtml(x.ing)+'<span>'+kgTxt(x.g)+' kg</span></li>').join('');
     const itensBloco = itensLista ? '<div class="rc-ings-tit">Ingredientes</div><ul class="rc-ings">'+itensLista+'</ul>' : '';
     const foto = r.foto
       ? '<div class="rc-foto" style="background-image:url(\''+r.foto+'\')" onclick="trocarFoto('+r.id+')" title="Trocar foto"></div>'
@@ -206,7 +212,10 @@ function renderSalvas(){
         '<div class="hint">rende '+r.rende+' prato(s) · '+eur(r.custo_por_prato)+' por prato</div>'+
         itensBloco+
         prep+
-        '<button class="btn ghost" style="margin-top:10px;padding:5px 12px" onclick="removerReceita('+r.id+')">remover</button>'+
+        '<div style="display:flex;gap:8px;margin-top:10px">'+
+          '<button class="btn ghost" style="padding:5px 12px" onclick="editarReceita('+r.id+')">editar</button>'+
+          '<button class="btn ghost" style="padding:5px 12px" onclick="removerReceita('+r.id+')">remover</button>'+
+        '</div>'+
       '</div></div>';
   }).join('') || '<p class="hint">Nenhuma receita ainda. Clique em <b>Criar receita</b> para começar.</p>';
 }
@@ -242,6 +251,9 @@ function redimensionarImagem(file, cb){
 
 /* ---- abrir / fechar a tela de criar receita ---- */
 function abrirCriarReceita(){
+  recEditId = null;
+  const _t = document.getElementById('rec-modal-titulo'); if (_t) _t.textContent = 'Criar receita';
+  const _b = document.getElementById('rec-modal-btn'); if (_b) _b.textContent = 'Salvar receita';
   document.getElementById('rec-nome').value = '';
   document.getElementById('rec-rende').value = 1;
   document.getElementById('rec-preparo').value = '';
@@ -252,6 +264,26 @@ function abrirCriarReceita(){
   document.getElementById('modal-receita').classList.add('aberto');
 }
 function fecharCriarReceita(){ document.getElementById('modal-receita').classList.remove('aberto'); }
+function editarReceita(id){
+  const r = receitasSalvas.find(x => x.id === id); if (!r) return;
+  recEditId = id;
+  document.getElementById('rec-nome').value = r.nome || '';
+  document.getElementById('rec-rende').value = r.rende || 1;
+  document.getElementById('rec-preparo').value = r.modo_preparo || '';
+  fotoAtual = r.foto || null;
+  const prev = document.getElementById('rec-foto-preview');
+  if (fotoAtual){ prev.style.backgroundImage = "url('" + fotoAtual + "')"; prev.classList.add('tem'); }
+  else { prev.style.backgroundImage = ''; prev.classList.remove('tem'); }
+  const inp = document.getElementById('rec-foto-input'); if (inp) inp.value = '';
+  linhasBody.innerHTML = '';
+  const itens = r.itens || [];
+  if (itens.length) itens.forEach(x => addLinha(x.ing, Number(x.g)/1000));   // grama → kg no editor
+  else { addLinha(); addLinha(); }
+  recalcularReceita();
+  const t = document.getElementById('rec-modal-titulo'); if (t) t.textContent = 'Editar receita';
+  const b = document.getElementById('rec-modal-btn'); if (b) b.textContent = 'Salvar alterações';
+  document.getElementById('modal-receita').classList.add('aberto');
+}
 async function removerReceita(id){
   if (!sb) return;
   const { error } = await sb.from('receitas').delete().eq('id', id);

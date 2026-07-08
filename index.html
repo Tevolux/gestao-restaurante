@@ -339,7 +339,7 @@
 <div class="modal" id="modal-receita">
   <div class="modal-card">
     <div class="modal-head">
-      <h2>Criar receita</h2>
+      <h2 id="rec-modal-titulo">Criar receita</h2>
       <button class="modal-x" onclick="fecharCriarReceita()" aria-label="Fechar">&times;</button>
     </div>
     <div class="modal-body">
@@ -364,7 +364,7 @@
         </div>
         <div class="tbl-scroll">
           <table>
-            <thead><tr><th>Ingrediente</th><th style="width:100px">Qtd (g)</th><th style="width:96px" class="num">Preço/kg</th><th style="width:96px" class="num">Custo</th><th style="width:40px"></th></tr></thead>
+            <thead><tr><th>Ingrediente</th><th style="width:110px">Qtd (kg)</th><th style="width:96px" class="num">Preço/kg</th><th style="width:96px" class="num">Custo</th><th style="width:40px"></th></tr></thead>
             <tbody id="rec-linhas"></tbody>
           </table>
         </div>
@@ -383,7 +383,7 @@
     </div>
     <div class="modal-foot">
       <button class="btn ghost" onclick="fecharCriarReceita()">Cancelar</button>
-      <button class="btn" onclick="salvarReceita()">Salvar receita</button>
+      <button class="btn" id="rec-modal-btn" onclick="salvarReceita()">Salvar receita</button>
     </div>
   </div>
 </div>
