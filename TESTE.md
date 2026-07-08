@@ -36,8 +36,16 @@ Supabase (idempotente — pode rodar de novo). Popula 12 receitas, 10 colaborado
 - [ ] **Editar** uma receita: abre preenchida (nome, rende, foto, ingredientes em kg, preparo), salva por cima.
 - [ ] **Remover** uma receita.
 
-## 5. Ingredientes
+## 5. Ingredientes + Estoque
 - [ ] Adicionar insumo, editar preço na lista, buscar, remover.
+- [ ] Editar **Estoque** e **Mínimo** (kg) direto na lista — salva no banco.
+- [ ] Itens abaixo do mínimo ficam **destacados** (badge "baixo") e aparecem no card **⚠ Estoque baixo**.
+- [ ] O **sino de notificações** (topo) mostra os itens de estoque baixo com contador.
+
+## 9. Gestão — Quadro de tarefas (kanban)
+- [ ] Abrir **Módulos → Gestão**: 3 colunas (A fazer, Fazendo, Feito).
+- [ ] **Adicionar** tarefa (entra em "A fazer"); Enter também adiciona.
+- [ ] Mover com **← / →** entre colunas e **remover** (×) — tudo salva no banco.
 
 ## 6. Colaboradores
 - [ ] Cadastrar com foto e documentos.
