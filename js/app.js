@@ -202,8 +202,12 @@ function stepsPreparo(txt){
 }
 
 function renderSalvas(){
-  document.getElementById('rec-contador').textContent = receitasSalvas.length;
-  document.getElementById('rec-salvas').innerHTML = receitasSalvas.map(r => {
+  const termoRec = (document.getElementById('rec-filtro')?.value || '').trim().toLowerCase();
+  const listaRec = termoRec
+    ? receitasSalvas.filter(r => (r.nome||'').toLowerCase().includes(termoRec) || (r.itens||[]).some(x => (x.ing||'').toLowerCase().includes(termoRec)))
+    : receitasSalvas;
+  document.getElementById('rec-contador').textContent = listaRec.length;
+  document.getElementById('rec-salvas').innerHTML = listaRec.map(r => {
     const itensLista = (r.itens||[]).map(x => '<li>'+escapeHtml(x.ing)+'<span>'+kgTxt(x.g)+' kg</span></li>').join('');
     const itensBloco = itensLista ? '<div class="rc-ings-tit">Ingredientes</div><ul class="rc-ings">'+itensLista+'</ul>' : '';
     const foto = r.foto
@@ -222,7 +226,7 @@ function renderSalvas(){
           '<button class="btn ghost" style="padding:5px 12px" onclick="removerReceita('+r.id+')">remover</button>'+
         '</div>'+
       '</div></div>';
-  }).join('') || '<p class="hint">Nenhuma receita ainda. Clique em <b>Criar receita</b> para começar.</p>';
+  }).join('') || '<p class="hint">'+(termoRec ? 'Nenhuma receita usa esse ingrediente.' : 'Nenhuma receita ainda. Clique em <b>Criar receita</b> para começar.')+'</p>';
 }
 
 /* ---- foto do prato (redimensiona antes de salvar, pra não pesar) ---- */
@@ -553,6 +557,11 @@ function closeCmd(){ document.getElementById('cmdk').classList.remove('aberto');
 function renderCmd(q){
   q = q.toLowerCase();
   cmdFiltrados = CMDS.filter(c => c.label.toLowerCase().includes(q));
+  if (q.length >= 2){
+    (receitasSalvas||[]).filter(r => (r.nome||'').toLowerCase().includes(q)).slice(0,5).forEach(r => cmdFiltrados.push({ label:r.nome, hint:'Receita', run:()=>{ navegar('receitas'); const f=document.getElementById('rec-filtro'); if(f){ f.value=r.nome; renderSalvas(); } } }));
+    (listaIngredientes||[]).filter(x => (x.nome||'').toLowerCase().includes(q)).slice(0,5).forEach(x => cmdFiltrados.push({ label:x.nome, hint:'Ingrediente', run:()=>{ navegar('ingredientes'); const f=document.getElementById('ing-busca'); if(f){ f.value=x.nome; if(typeof renderIngredientes==='function') renderIngredientes(); } } }));
+    (typeof listaColab!=='undefined'?listaColab:[]).filter(c => (c.nome||'').toLowerCase().includes(q)).slice(0,5).forEach(c => cmdFiltrados.push({ label:c.nome, hint:'Colaborador', run:()=>navegar('colaboradores') }));
+  }
   if (cmdSel >= cmdFiltrados.length) cmdSel = 0;
   document.getElementById('cmdk-list').innerHTML = cmdFiltrados.length
     ? cmdFiltrados.map((c,i) => '<div class="cmdk-item'+(i===cmdSel?' sel':'')+'" data-i="'+i+'"><span>'+c.label+'</span><span class="cmdk-hint">'+c.hint+'</span></div>').join('')
@@ -1142,6 +1151,7 @@ function renderOperacao(){
   alvo.querySelectorAll('.op-pratos').forEach(inp => inp.addEventListener('input', calcularOperacao));
   calcularOperacao();
 }
+let producaoAtual = {};   // ingredientes consumidos na producao informada (para dar baixa no estoque)
 function calcularOperacao(){
   const tk = document.getElementById('op-ticket'); if (!tk) return;
   const ticket = num(tk.value);
@@ -1157,6 +1167,7 @@ function calcularOperacao(){
     const fator = r.rende > 0 ? pratos / r.rende : 0;
     (r.itens || []).forEach(it => { compras[it.ing] = (compras[it.ing] || 0) + it.g * fator; });
   });
+  producaoAtual = compras;
   const receita = pratosTotal * ticket;
   const lucro = receita - custoTotal;
   const margem = receita > 0 ? lucro / receita * 100 : 0;
@@ -1302,6 +1313,61 @@ async function alterarSenha(){
   if (error){ console.error(error); toast(traduzErro(error.message), false); return; }
   document.getElementById('set-senha').value = ''; document.getElementById('set-senha2').value = '';
   toast('Senha alterada');
+}
+
+/* ---- baixa automática de estoque a partir da produção do dia ---- */
+async function darBaixaProducao(){
+  const nomes = Object.keys(producaoAtual).filter(n => producaoAtual[n] > 0);
+  if (!nomes.length){ toast('Informe os pratos produzidos primeiro.', false); return; }
+  if (!sb){ toast('Configure o Supabase para dar baixa.', false); return; }
+  if (!confirm('Dar baixa no estoque com a produção informada?\nIsso desconta os ingredientes usados de cada estoque.')) return;
+  let ok = 0;
+  for (const n of nomes){
+    const kg = producaoAtual[n] / 1000;
+    const antes = ESTOQUE[n] ? ESTOQUE[n].atual : 0;
+    const novo = Math.max(0, antes - kg);
+    const { error } = await sb.from('ingredientes').update({ estoque_atual: novo }).eq('nome', n);
+    if (error){ console.error(error); continue; }
+    if (!ESTOQUE[n]) ESTOQUE[n] = { atual:0, minimo:0 };
+    ESTOQUE[n].atual = novo;
+    const it = listaIngredientes.find(x => x.nome === n); if (it) it.estoque_atual = novo;
+    ok++;
+  }
+  renderIngredientes(); renderEstoqueBaixo(); atualizarNotificacoes();
+  if (typeof renderCompras === 'function') renderCompras();
+  toast('Baixa registrada: ' + ok + ' ingrediente(s) descontados do estoque.');
+}
+
+/* ---- exportar planilhas (CSV, separador ; e BOM para Excel pt-BR) ---- */
+function baixarCSV(linhas, nomeArq){
+  const csv = linhas.map(l => l.map(c => { const s = String(c).replace(/"/g,'""'); return /[",;\n]/.test(s) ? '"'+s+'"' : s; }).join(';')).join('\n');
+  const blob = new Blob(['﻿'+csv], { type:'text/csv;charset=utf-8;' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nomeArq;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+  toast('Planilha exportada: ' + nomeArq);
+}
+function exportarComprasCSV(){
+  const linhas = [['Ingrediente','Estoque (kg)','Minimo (kg)','Comprar (kg)','Custo']];
+  document.querySelectorAll('#compras-lista tr[data-nome]').forEach(tr => {
+    const nome = tr.getAttribute('data-nome'), preco = num(tr.getAttribute('data-preco'));
+    const qtd = num(tr.querySelector('.cp-qtd').value);
+    const it = listaIngredientes.find(x => x.nome === nome) || {};
+    linhas.push([nome, it.estoque_atual||0, it.estoque_minimo||0, qtd, (qtd*preco).toFixed(2)]);
+  });
+  if (linhas.length === 1){ toast('Nada para exportar — estoque em dia.', false); return; }
+  baixarCSV(linhas, 'lista-de-compras.csv');
+}
+function exportarFolhaCSV(){
+  const linhas = [['Colaborador','Cargo','Liquido','Bruto','Desconto %','Horas/dia','Horas extras','Valor extras','Total a pagar']];
+  (listaColab||[]).forEach(c => {
+    const p = mapaPagamentos[c.id]; if (!p) return;
+    const liq = Number(p.salario_liquido)||0, bruto = Number(p.salario_bruto)||0;
+    const horas = Number(p.horas_dia)||0, desc = Number(p.desconto_pct)||0;
+    const hEx = Math.max(0, horas-6), vEx = hEx*15, total = liq + vEx;
+    linhas.push([c.nome, c.cargo||'', liq.toFixed(2), bruto.toFixed(2), desc, horas, hEx, vEx.toFixed(2), total.toFixed(2)]);
+  });
+  if (linhas.length === 1){ toast('Sem folha para exportar.', false); return; }
+  baixarCSV(linhas, 'folha-de-pagamento.csv');
 }
 
 /* ================= ESTADO INICIAL DA NAVEGAÇÃO ================= */
