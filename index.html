@@ -193,7 +193,8 @@
             </div>
             <button class="btn" onclick="abrirCriarReceita()">+ Criar receita</button>
           </div>
-          <div id="rec-salvas" style="margin-top:18px"></div>
+          <div class="inp" style="max-width:360px;margin:16px 0 6px"><input id="rec-filtro" oninput="renderSalvas()" placeholder="Filtrar por ingrediente ou nome…"></div>
+          <div id="rec-salvas" style="margin-top:8px"></div>
         </div>
       </section>
 
@@ -234,6 +235,7 @@
             <div>
               <h2 style="margin:0">Lista de compras <span class="tag" id="compras-contador">0</span></h2>
               <p class="sub" style="margin:4px 0 0">Itens abaixo do mínimo, com a quantidade sugerida para repor. Ajuste o que precisar.</p>
+              <div style="margin-top:10px"><button class="btn ghost" onclick="exportarComprasCSV()">⬇ Exportar planilha</button></div>
             </div>
             <div style="text-align:right">
               <div class="hint">Custo total</div>
@@ -313,6 +315,7 @@
             <div>
               <h2 style="margin:0">Pagamentos da equipe</h2>
               <p class="sub" style="margin:4px 0 0">Digite o líquido ou o bruto — o outro é calculado pela % de desconto. Horas acima de 6h viram extra a € 15/h.</p>
+              <div style="margin-top:10px"><button class="btn ghost" onclick="exportarFolhaCSV()">⬇ Exportar planilha</button></div>
             </div>
             <div style="text-align:right">
               <div class="hint">Total a pagar (todos)</div>
@@ -355,6 +358,7 @@
             <h2>Lista de compras</h2>
             <p class="sub">Ingredientes somados, já com a folga.</p>
             <div id="op-compras"></div>
+            <div style="margin-top:16px"><button class="btn" onclick="darBaixaProducao()">Registrar produção (dar baixa no estoque)</button></div>
           </div>
         </div>
       </section>

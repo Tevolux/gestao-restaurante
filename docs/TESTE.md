@@ -9,8 +9,9 @@ Roteiro para validar as funcionalidades. Rode localmente ou use o preview da Ver
 - **Login:** use sua conta do Supabase. Sem login, os dados do banco não carregam.
 
 ## Dados de exemplo
-Se o banco estiver vazio, rode [supabase-dados-exemplo.sql](supabase-dados-exemplo.sql) no SQL Editor do
+Se o banco estiver vazio, rode [supabase-dados-exemplo.sql](../database/supabase-dados-exemplo.sql) no SQL Editor do
 Supabase (idempotente — pode rodar de novo). Popula 12 receitas, 10 colaboradores e a folha.
+Todos os scripts SQL ficam na pasta [`database/`](../database).
 
 ---
 

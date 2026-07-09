@@ -4,7 +4,7 @@
    Serve para demonstração e para os testes automatizados (Playwright).
    O modo real (produção) não é afetado.
    ------------------------------------------------------------
-   Dados espelham massa-certa-COMPLETO.sql.
+   Dados espelham database/massa-certa-COMPLETO.sql.
    ============================================================ */
 const MOCK_MODE = /[?&]mock=1\b/.test(location.search) || (typeof window !== 'undefined' && window.MOCK_MODE === true);
 
