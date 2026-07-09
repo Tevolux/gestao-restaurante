@@ -516,3 +516,7 @@ tr.ing-baixo td{ background:var(--neg-soft) !important; }
   .modal{ padding:3vh 16px; align-items:flex-start; }
   .modal-card{ min-height:auto; }
 }
+
+/* notificações clicáveis (dispensar) */
+.notif .n{ cursor:pointer; transition:background .12s; }
+.notif .n:hover{ background:var(--canvas); }
