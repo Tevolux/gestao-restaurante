@@ -89,9 +89,9 @@ O sistema guarda os dados no **Supabase**. As chaves de conexão ficam no
 NUNCA deve aparecer no código).
 
 ### Os scripts SQL
-Você roda os scripts no Supabase → **SQL Editor** → colar → **Run**.
+Ficam na pasta **`database/`**. Você roda no Supabase → **SQL Editor** → colar → **Run**.
 
-- **`massa-certa-COMPLETO.sql`** → **o principal**. Cria todas as tabelas e já
+- **`database/massa-certa-COMPLETO.sql`** → **o principal**. Cria todas as tabelas e já
   preenche tudo (ingredientes, estoque, receitas, equipe, folha e tarefas). É só
   rodar este que o banco fica pronto. Pode rodar de novo sem medo.
 

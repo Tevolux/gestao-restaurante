@@ -1,0 +1,241 @@
+============================================================
+  MASSA CERTA — RESUMO DO PROJETO (para qualquer pessoa ler)
+============================================================
+Documento simples e didático. Explica o que é o projeto, como
+ele está organizado, e o que já foi feito — incluindo Git,
+GitHub, Vercel e Supabase. Não precisa ser programador para
+entender.
+
+Última atualização: 09/07/2026
+
+
+------------------------------------------------------------
+1. O QUE É O PROJETO
+------------------------------------------------------------
+"Massa Certa" é um sistema de gestão para um restaurante
+(a Pastasciutta, em Roma). Ele funciona no navegador (como um
+site) e tem várias áreas: dashboard, receitas, ingredientes,
+estoque, compras, vendas, colaboradores, folha de pagamento,
+tarefas (kanban), projeções, etc.
+
+Em uma frase: é um site que funciona como um programa, com
+login e dados guardados na nuvem.
+
+
+------------------------------------------------------------
+2. AS 4 "PEÇAS" QUE FAZEM O SISTEMA FUNCIONAR
+------------------------------------------------------------
+Pense em 4 caixas, cada uma com um papel:
+
+  GIT      -> o "histórico" do código no seu computador.
+              Guarda todas as versões e mudanças.
+
+  GITHUB   -> a "nuvem do código". É uma cópia do projeto na
+              internet, para guardar e compartilhar.
+              Endereço: github.com/Tevolux/gestao-restaurante
+
+  VERCEL   -> onde o site fica PUBLICADO para o mundo acessar.
+              Endereço: massa-certa.vercel.app
+              Toda vez que o código sobe pro GitHub (no "main"),
+              a Vercel publica a nova versão automaticamente.
+
+  SUPABASE -> o "banco de dados" + o "login". É onde ficam
+              guardados os ingredientes, receitas, equipe,
+              estoque, etc., e onde os usuários se cadastram.
+              Projeto: ctgelvortcggdykesxmh.supabase.co
+
+Como elas conversam:
+  Você edita o código  ->  salva no GIT  ->  envia pro GITHUB
+  ->  a VERCEL publica o site  ->  o site conversa com o SUPABASE
+  para mostrar/salvar os dados.
+
+
+------------------------------------------------------------
+3. COMO OS ARQUIVOS ESTÃO ORGANIZADOS
+------------------------------------------------------------
+massa-certa/
+  |
+  |-- index.html .............. a página (a estrutura da tela)
+  |-- README.md ............... apresentação do projeto
+  |
+  |-- css/
+  |     |-- style.css ......... todo o visual (cores, layout)
+  |
+  |-- js/
+  |     |-- app.js ............ o "cérebro": toda a lógica
+  |     |-- config.js ......... as chaves de acesso ao Supabase
+  |     |-- mock.js ........... o MODO DEMO (explicado no item 6)
+  |
+  |-- assets/
+  |     |-- favicon.svg ....... o iconezinho da aba do navegador
+  |
+  |-- supabase/ .............. configuração do banco e "migrations"
+  |     |-- migrations/ ...... arquivos que alteram o banco (integração)
+  |
+  |-- database/ ............. scripts SQL para rodar no Supabase
+  |     |-- massa-certa-COMPLETO.sql .. cria tudo + dados de exemplo
+  |     |-- supabase-tabelas.sql
+  |     |-- supabase-dados-exemplo.sql
+  |     |-- supabase-estoque-e-tarefas.sql
+  |     |-- supabase-corrige-receitas.sql
+  |
+  |-- docs/ ................. documentação (textos para ler)
+        |-- GUIA-DO-SISTEMA.md ........ guia completo do sistema
+        |-- COMANDOS.md ............... caminhos e comandos
+        |-- SEGURANCA-FUTURO.md ....... plano de segurança futuro
+        |-- TESTE.md .................. guia de testes
+        |-- RESUMO-DO-PROJETO.md ...... este documento (versão .md)
+        |-- RESUMO-DO-PROJETO.txt ..... este documento
+
+  Observação: o app (index.html, css/, js/, assets/), a pasta supabase/ e o
+  README.md ficam na raiz de propósito — é o que a Vercel publica e o que a
+  integração do Supabase usa. Só os SQL e as documentações foram agrupados.
+
+
+------------------------------------------------------------
+4. COMO FUNCIONAM AS "BRANCHES" (RAMOS) NO GIT
+------------------------------------------------------------
+Uma "branch" é como uma cópia paralela do projeto onde você faz
+mudanças SEM bagunçar a versão principal. A versão principal
+(estável) se chama "main".
+
+Regra usada neste projeto:
+  Toda mudança nasce em uma branch nova, é testada, e só depois
+  é levada ("merge") para o "main".
+
+Branches que já existiram (cada uma foi um passo do projeto):
+  - feat/login-cadastro-funcional ...... login e cadastro
+  - feat/layout-responsivo ............. layout para celular/PC
+  - feat/menu-configuracoes-conta ...... menu e conta do usuário
+  - feat/colaboradores-receitas-pagamentos . equipe/receitas/folha
+  - feat/estoque-e-gestao .............. estoque e quadro de tarefas
+  - fix/estoque-colunas ................ conserto das colunas de estoque
+  - feat/notificacoes-dispensar ........ ESTA SESSÃO (ver item 5)
+
+
+------------------------------------------------------------
+5. O QUE FIZEMOS NESTA SESSÃO (as mudanças mais recentes)
+------------------------------------------------------------
+Tudo foi feito na branch:  feat/notificacoes-dispensar
+E depois levado para o "main" e enviado ao GitHub.
+
+Foram 3 objetivos:
+
+(A) NOTIFICAÇÕES DE ESTOQUE CLICÁVEIS
+    O QUE:  agora dá para clicar em uma notificação de "estoque
+            baixo" para dispensá-la (ela some da lista).
+    ONDE:   js/app.js (função nova "dispensarNotif")
+            css/style.css (efeito de passar o mouse)
+    POR QUÊ: deixar a tela mais limpa; a pessoa tira da frente
+            os avisos que já viu. (Se o estoque continuar baixo,
+            o aviso volta quando a página recarrega.)
+
+(B) CORREÇÃO DO ERRO "Erro ao atualizar estoque"
+    O QUE:  ao mudar o estoque de um ingrediente, aparecia um
+            erro vermelho e não salvava.
+    MOTIVO: faltavam duas colunas no banco de dados (Supabase):
+            "estoque_atual" e "estoque_minimo".
+    COMO CORRIGIMOS: rodamos um comando (SQL) no Supabase que
+            cria essas colunas e preenche dados de exemplo.
+            Esse comando está no arquivo:
+                database/massa-certa-COMPLETO.sql
+            (é seguro rodar de novo — não duplica nada).
+    RESULTADO: o estoque passou a salvar normalmente, com a
+            mensagem verde "Estoque atualizado".
+
+(C) MODO DEMO (MOCK) — rodar o sistema SEM login e SEM banco
+    O QUE:  um modo de demonstração que roda o sistema 100% no
+            navegador, com dados de exemplo, sem precisar de
+            internet, login ou Supabase.
+    ONDE:   js/mock.js (arquivo novo)
+            js/app.js e index.html (ligam esse modo)
+    COMO USAR: basta abrir o site com "?mock=1" no final do
+            endereço. Exemplo:
+                .../index.html?mock=1
+    POR QUÊ: serve para demonstrar o sistema e para os TESTES
+            automáticos rodarem sozinhos. O modo normal
+            (produção, com login e Supabase) NÃO muda em nada.
+
+Também foram adicionados dois textos de documentação:
+    GUIA-DO-SISTEMA.md  e  SEGURANCA-FUTURO.md
+
+(D) NOVAS FERRAMENTAS DO DIA A DIA (do pacote "massa-certa 2")
+    - Filtro de receitas: busca por nome OU por ingrediente na aba Receitas.
+    - Exportar planilha (CSV): botoes nas abas Compras e Pagamentos geram
+      uma planilha que abre no Excel.
+    - Registrar producao (dar baixa no estoque): na aba Operacao, desconta do
+      estoque os ingredientes usados na producao informada.
+    - Busca (Ctrl/Cmd + K) ampliada: agora acha receitas, ingredientes e
+      colaboradores, alem das areas do sistema.
+    Testado com Playwright (11 verificacoes OK). Nao exigiu mudanca no banco.
+
+
+------------------------------------------------------------
+6. OS DOIS MODOS DE USAR O SISTEMA
+------------------------------------------------------------
+  MODO NORMAL (produção)
+    Endereço normal (sem ?mock=1).
+    Pede LOGIN e usa o banco real (Supabase).
+    É o que o restaurante usa de verdade.
+
+  MODO DEMO (mock)
+    Endereço com ?mock=1 no final.
+    NÃO pede login e usa dados de exemplo na memória.
+    Bom para mostrar o sistema ou testar sem risco.
+
+
+------------------------------------------------------------
+7. COMO CONFERIMOS QUE ESTÁ TUDO FUNCIONANDO (TESTES)
+------------------------------------------------------------
+Usamos uma ferramenta chamada Playwright, que abre o site
+sozinha e "clica" nas coisas como um usuário faria, conferindo
+se cada parte funciona.
+
+  - Testes no MODO DEMO: 15 verificações, todas passaram. ✅
+  - Testes no MODO REAL (logado no Supabase de verdade):
+    14 verificações, todas passaram. ✅
+    (Inclui: login, carregar os dados reais, atualizar o
+     estoque sem erro, e dispensar notificação.)
+
+Durante o teste real, um valor de estoque foi alterado só para
+testar e depois REVERTIDO ao original, para não bagunçar o
+banco. Também foi criado um usuário de teste no Supabase
+(playwright.teste+massacerta@gmail.com) — inofensivo; pode ser
+apagado em Supabase > Authentication > Users, se desejar.
+
+
+------------------------------------------------------------
+8. SITUAÇÃO ATUAL (onde tudo parou)
+------------------------------------------------------------
+  - Código:   atualizado e salvo no Git.
+  - main:     recebeu todas as mudanças (commit 054e75f).
+  - GitHub:   atualizado (push feito).
+  - Vercel:   ao subir pro GitHub, publica sozinha a nova versão
+              em massa-certa.vercel.app.
+  - Supabase: corrigido (colunas de estoque criadas) e com
+              dados de exemplo.
+  - Login:    LIGADO e funcionando normalmente.
+
+Resumo em uma frase: o erro de estoque foi resolvido, as
+notificações ficaram clicáveis, criamos um modo de demonstração,
+testamos tudo, e publicamos.
+
+
+------------------------------------------------------------
+9. PEQUENO GLOSSÁRIO (palavras difíceis, em português simples)
+------------------------------------------------------------
+  Branch (ramo) .. cópia paralela do projeto para trabalhar sem
+                   estragar a versão principal.
+  Commit ......... uma "foto" salva de uma mudança no código.
+  Merge .......... juntar uma branch na versão principal (main).
+  Push ........... enviar o que está no seu PC para o GitHub.
+  Deploy ......... publicar o site para o público (a Vercel faz).
+  SQL ............ a "linguagem" para conversar com o banco.
+  Migration ...... um arquivo que altera a estrutura do banco.
+  RLS ............ regra de segurança do banco: só quem está
+                   logado vê/altera os dados.
+  Mock (demo) .... dados falsos de exemplo, para testar/demonstrar.
+
+============================================================
+                        FIM DO RESUMO
+============================================================
