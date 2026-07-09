@@ -578,7 +578,9 @@ document.addEventListener('keydown', function(e){
 /* ================= SUPABASE — banco de dados + login ================= */
 let sb = null;
 try {
-  if (typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL.indexOf('COLE_') !== 0) {
+  if (typeof MOCK_MODE !== 'undefined' && MOCK_MODE) {
+    sb = criarMockSupabase();   // modo demo: dados de exemplo em memória, sem Supabase e sem login
+  } else if (typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL.indexOf('COLE_') !== 0) {
     sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
 } catch (e) { console.error('Supabase não configurado:', e); }
@@ -776,8 +778,17 @@ function atualizarNotificacoes(){
   if (badge){ badge.textContent = baixos.length; badge.style.display = baixos.length ? '' : 'none'; }
   const lista = document.getElementById('notif-lista'); if (!lista) return;
   lista.innerHTML = baixos.length
-    ? baixos.map(x => '<div class="n"><span class="nd" style="background:var(--neg)"></span><div><div class="nt">Estoque baixo: '+escapeHtml(x.nome)+'</div><div class="ns">'+numKg(x.estoque_atual)+' kg · mínimo '+numKg(x.estoque_minimo)+' kg</div></div></div>').join('')
+    ? baixos.map(x => '<div class="n" onclick="dispensarNotif(this, event)" title="clique para dispensar"><span class="nd" style="background:var(--neg)"></span><div><div class="nt">Estoque baixo: '+escapeHtml(x.nome)+'</div><div class="ns">'+numKg(x.estoque_atual)+' kg · mínimo '+numKg(x.estoque_minimo)+' kg</div></div></div>').join('')
     : '<p class="hint" style="padding:10px">Tudo em dia. Estoque acima do mínimo. ✓</p>';
+}
+/* dispensa a notificação clicada; ela reaparece no próximo carregamento se o estoque seguir baixo */
+function dispensarNotif(el, e){
+  if (e) e.stopPropagation();
+  el.remove();
+  const rest = document.querySelectorAll('#notif-lista .n').length;
+  const badge = document.getElementById('notif-badge');
+  if (badge){ if (rest > 0){ badge.textContent = rest; badge.style.display = ''; } else { badge.style.display = 'none'; } }
+  if (rest === 0){ document.getElementById('notif-lista').innerHTML = '<p class="hint" style="padding:10px">Tudo em dia. Estoque acima do mínimo. ✓</p>'; }
 }
 atualizarListaIngredientes(); renderIngredientes();
 const buscaIng = document.getElementById('ing-busca'); if (buscaIng) buscaIng.addEventListener('input', renderIngredientes);
